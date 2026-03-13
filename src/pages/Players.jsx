@@ -47,6 +47,24 @@ export default function Players() {
         {state.players.map((player, i) => (
           <div key={player} className="player-card" style={{ animationDelay: `${i * 0.05}s` }}>
             <span className="player-name">{player}</span>
+            <div className="player-score-section">
+              <input
+                type="number"
+                min="0"
+                value={state.scores[player] ?? ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const score = val === '' ? '' : parseInt(val, 10);
+                  dispatch({
+                    type: 'SET_SCORE',
+                    payload: { player, score: isNaN(score) ? '' : score },
+                  });
+                }}
+                placeholder="Score"
+                className="input player-score-input"
+              />
+              <span className="score-label">coups</span>
+            </div>
             <button
               className="btn-remove"
               onClick={() => dispatch({ type: 'REMOVE_PLAYER', payload: player })}

@@ -62,6 +62,31 @@
 .player-name {
   font-weight: 600;
   font-size: 1.1rem;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-score-section {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0 0.8rem;
+}
+
+.player-score-input {
+  width: 75px !important;
+  text-align: center;
+  padding: 0.4rem 0.5rem !important;
+  font-size: 0.95rem !important;
+}
+
+.score-label {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
 }
 
 .btn-remove {
