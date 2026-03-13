@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useGame } from '../context/GameContext';
+import { Link } from 'react-router-dom';
 import Wheel from '../components/Wheel';
 import './TeamDraw.css';
 
@@ -201,9 +202,12 @@ export default function TeamDraw() {
             <div className="draw-complete">
               <h2>🎉 Tirage terminé !</h2>
               <p>Les équipes sont formées. Direction les scores !</p>
-              <button className="btn btn-start" onClick={() => setStarted(false)}>
-                🔄 Refaire le tirage
-              </button>
+              <div className="draw-complete-actions">
+                <Link to="/scores" className="btn btn-next">📊 Étape suivante : Scores →</Link>
+                <button className="btn btn-start" onClick={() => setStarted(false)}>
+                  🔄 Refaire le tirage
+                </button>
+              </div>
             </div>
           )}
         </div>

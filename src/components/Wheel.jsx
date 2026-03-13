@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { playTick, playWinSound, playSpinSound } from '../hooks/useSounds';
 import './Wheel.css';
 
 const COLORS = [
@@ -14,6 +15,7 @@ export default function Wheel({ items, onResult, title }) {
   const [winner, setWinner] = useState(null);
   const animRef = useRef(null);
   const currentRotation = useRef(0);
+  const lastTickSlice = useRef(-1);
 
   const drawWheel = useCallback((rot) => {
     const canvas = canvasRef.current;
@@ -74,11 +76,20 @@ export default function Wheel({ items, onResult, title }) {
     drawWheel(currentRotation.current);
   }, [drawWheel]);
 
+  function getCurrentSlice(rot) {
+    const arc = (2 * Math.PI) / items.length;
+    const normalizedRot = ((rot % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    const pointerAngle = (2 * Math.PI - normalizedRot + Math.PI * 1.5) % (2 * Math.PI);
+    return Math.floor(pointerAngle / arc) % items.length;
+  }
+
   function spin() {
     if (spinning || items.length === 0) return;
 
     setSpinning(true);
     setWinner(null);
+    lastTickSlice.current = -1;
+    playSpinSound();
 
     const totalRotation = Math.PI * 2 * (5 + Math.random() * 5);
     const duration = 4000 + Math.random() * 2000;
@@ -98,16 +109,21 @@ export default function Wheel({ items, onResult, title }) {
       currentRotation.current = rot;
       drawWheel(rot);
 
+      // Tick sound when crossing slice boundary
+      const currentSlice = getCurrentSlice(rot);
+      if (currentSlice !== lastTickSlice.current) {
+        lastTickSlice.current = currentSlice;
+        playTick();
+      }
+
       if (progress < 1) {
         animRef.current = requestAnimationFrame(animate);
       } else {
         setSpinning(false);
-        const arc = (2 * Math.PI) / items.length;
-        const normalizedRot = ((rot % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-        const pointerAngle = (2 * Math.PI - normalizedRot + Math.PI * 1.5) % (2 * Math.PI);
-        const winnerIndex = Math.floor(pointerAngle / arc) % items.length;
+        const winnerIndex = getCurrentSlice(rot);
         const result = items[winnerIndex];
         setWinner(result);
+        playWinSound();
         if (onResult) onResult(result);
       }
     }

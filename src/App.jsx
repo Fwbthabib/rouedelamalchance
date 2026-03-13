@@ -7,6 +7,7 @@ import TeamDraw from './pages/TeamDraw';
 import Scores from './pages/Scores';
 import Malchance from './pages/Malchance';
 import History from './pages/History';
+import Stats from './pages/Stats';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
               <Route path="/scores" element={<Scores />} />
               <Route path="/malchance" element={<Malchance />} />
               <Route path="/historique" element={<History />} />
+              <Route path="/stats" element={<Stats />} />
             </Routes>
           </main>
         </div>

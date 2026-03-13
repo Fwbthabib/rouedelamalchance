@@ -1,9 +1,54 @@
+import { useState, useRef } from 'react';
 import { useGame } from '../context/GameContext';
 import { Link } from 'react-router-dom';
 import './Home.css';
 
 export default function Home() {
   const { state, dispatch } = useGame();
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showNukeConfirm, setShowNukeConfirm] = useState(false);
+  const [importMessage, setImportMessage] = useState(null);
+  const fileInputRef = useRef(null);
+
+  function handleResetGame() {
+    dispatch({ type: 'RESET_GAME' });
+    setShowResetConfirm(false);
+  }
+
+  function handleNukeData() {
+    dispatch({ type: 'RESET_ALL_DATA' });
+    setShowNukeConfirm(false);
+  }
+
+  function handleExport() {
+    const data = JSON.stringify(state, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rouedelamalchance_backup_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const data = JSON.parse(evt.target.result);
+        dispatch({ type: 'IMPORT_DATA', payload: data });
+        setImportMessage('Données importées avec succès !');
+        setTimeout(() => setImportMessage(null), 3000);
+      } catch {
+        setImportMessage('Erreur : fichier invalide');
+        setTimeout(() => setImportMessage(null), 3000);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }
 
   return (
     <div className="home-page">
@@ -30,7 +75,7 @@ export default function Home() {
             <span className="step-number">1</span>
             <span className="step-icon">👥</span>
             <h3>Joueurs</h3>
-            <p>Ajoute les pseudos de tout le monde</p>
+            <p>Ajoute les pseudos + scores</p>
             <span className="step-status">
               {state.players.length > 0 ? `${state.players.length} joueurs` : 'À faire'}
             </span>
@@ -48,9 +93,9 @@ export default function Home() {
             <span className="step-number">3</span>
             <span className="step-icon">📊</span>
             <h3>Scores</h3>
-            <p>Note les scores de la partie</p>
+            <p>Vérifie les totaux par équipe</p>
             <span className="step-status">
-              {Object.keys(state.scores).length > 0 ? 'En cours' : 'À faire'}
+              {state.losingTeam !== null ? 'Perdants désignés' : Object.keys(state.scores).length > 0 ? 'En cours' : 'À faire'}
             </span>
           </Link>
           <Link to="/malchance" className="step-card">
@@ -59,16 +104,63 @@ export default function Home() {
             <h3>Malchance</h3>
             <p>Les perdants tournent la roue des gages</p>
             <span className="step-status">
-              {state.losingTeam !== null ? 'Perdants désignés' : 'À faire'}
+              {state.losingTeam !== null ? 'Go go go !' : 'À faire'}
             </span>
           </Link>
         </div>
       </div>
 
       <div className="home-actions">
-        <button className="btn btn-new-game" onClick={() => dispatch({ type: 'RESET_GAME' })}>
-          🔄 Nouvelle partie
-        </button>
+        {!showResetConfirm ? (
+          <button className="btn btn-new-game" onClick={() => setShowResetConfirm(true)}>
+            🔄 Nouvelle partie
+          </button>
+        ) : (
+          <div className="confirm-box">
+            <p>Tu es sûr de vouloir reset la partie en cours ?</p>
+            <div className="confirm-buttons">
+              <button className="btn btn-confirm-yes" onClick={handleResetGame}>Oui, reset !</button>
+              <button className="btn btn-confirm-no" onClick={() => setShowResetConfirm(false)}>Non, annuler</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="home-bottom-section">
+        <h2>⚙️ Données</h2>
+        <div className="data-actions">
+          <button className="btn btn-export" onClick={handleExport}>
+            📤 Exporter les données
+          </button>
+          <button className="btn btn-import" onClick={() => fileInputRef.current?.click()}>
+            📥 Importer des données
+          </button>
+          <input
+            type="file"
+            accept=".json"
+            ref={fileInputRef}
+            onChange={handleImport}
+            style={{ display: 'none' }}
+          />
+          {!showNukeConfirm ? (
+            <button className="btn btn-nuke" onClick={() => setShowNukeConfirm(true)}>
+              🗑️ Supprimer TOUTES les données (test)
+            </button>
+          ) : (
+            <div className="confirm-box nuke">
+              <p>⚠️ Ça va TOUT supprimer : joueurs, gages, historique, stats. Tu es sûr ?</p>
+              <div className="confirm-buttons">
+                <button className="btn btn-confirm-yes nuke" onClick={handleNukeData}>Oui, tout supprimer</button>
+                <button className="btn btn-confirm-no" onClick={() => setShowNukeConfirm(false)}>Non, annuler</button>
+              </div>
+            </div>
+          )}
+        </div>
+        {importMessage && (
+          <div className={`import-message ${importMessage.includes('Erreur') ? 'error' : 'success'}`}>
+            {importMessage}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useGame } from '../context/GameContext';
+import { Link } from 'react-router-dom';
 import './Players.css';
 
 export default function Players() {
@@ -81,6 +82,14 @@ export default function Players() {
           </div>
         )}
       </div>
+
+      {state.players.length >= 2 && (
+        <div className="next-step">
+          <Link to="/tirage" className="btn btn-next">
+            🎡 Étape suivante : Tirage des équipes →
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

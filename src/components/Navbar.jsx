@@ -26,6 +26,7 @@ export default function Navbar() {
         <NavLink to="/scores">📊 Scores</NavLink>
         <NavLink to="/malchance">😈 Malchance</NavLink>
         <NavLink to="/historique">📜 Historique</NavLink>
+        <NavLink to="/stats">📈 Stats</NavLink>
       </div>
     </nav>
   );

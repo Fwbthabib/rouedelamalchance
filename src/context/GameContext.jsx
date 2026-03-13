@@ -7,7 +7,14 @@ const STORAGE_KEY = 'rouedelamalchance_data';
 function loadState() {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
-    if (data) return JSON.parse(data);
+    if (data) {
+      const parsed = JSON.parse(data);
+      // Migration: si les gages sont encore un tableau de strings, on migre
+      if (parsed.gages && parsed.gages.length > 0 && typeof parsed.gages[0] === 'string') {
+        parsed.gages = parsed.gages.map((g) => ({ text: g, category: 'Divers' }));
+      }
+      return parsed;
+    }
   } catch (e) {
     console.error('Failed to load state:', e);
   }
@@ -17,15 +24,16 @@ function loadState() {
 const defaultState = {
   players: [],
   gages: [
-    'Regarder un film catastrophique (note < 3/10)',
-    'Regarder un spectacle de magie gênant',
-    'Regarder une comédie musicale en entier',
-    'Préparer un exposé de 10 min sur un sujet imposé',
-    'Regarder un film de Noël en plein été',
-    'Écouter un album entier de musique bizarre',
-    'Regarder 2h de télé-réalité',
-    'Regarder un documentaire sur les escargots',
+    { text: 'Regarder un film catastrophique (note < 3/10)', category: 'Films' },
+    { text: 'Regarder un film de Noël en plein été', category: 'Films' },
+    { text: 'Regarder un spectacle de magie gênant', category: 'Spectacles' },
+    { text: 'Regarder une comédie musicale en entier', category: 'Spectacles' },
+    { text: 'Préparer un exposé de 10 min sur un sujet imposé', category: 'Exposés' },
+    { text: 'Écouter un album entier de musique bizarre', category: 'Divers' },
+    { text: 'Regarder 2h de télé-réalité', category: 'Divers' },
+    { text: 'Regarder un documentaire sur les escargots', category: 'Films' },
   ],
+  gageCategories: ['Films', 'Spectacles', 'Exposés', 'Divers'],
   teamSize: 2,
   drawMode: 'fill',
   scores: {},
@@ -52,10 +60,13 @@ function gameReducer(state, action) {
       };
     }
     case 'ADD_GAGE':
-      if (state.gages.includes(action.payload)) return state;
+      if (state.gages.some((g) => g.text === action.payload.text)) return state;
       return { ...state, gages: [...state.gages, action.payload] };
     case 'REMOVE_GAGE':
-      return { ...state, gages: state.gages.filter((g) => g !== action.payload) };
+      return { ...state, gages: state.gages.filter((g) => g.text !== action.payload) };
+    case 'ADD_GAGE_CATEGORY':
+      if (state.gageCategories.includes(action.payload)) return state;
+      return { ...state, gageCategories: [...state.gageCategories, action.payload] };
     case 'SET_TEAM_SIZE':
       return { ...state, teamSize: action.payload };
     case 'SET_DRAW_MODE':
@@ -88,6 +99,10 @@ function gameReducer(state, action) {
         teamScores: {},
         losingTeam: null,
       };
+    case 'RESET_ALL_DATA':
+      return { ...defaultState };
+    case 'IMPORT_DATA':
+      return { ...defaultState, ...action.payload };
     default:
       return state;
   }

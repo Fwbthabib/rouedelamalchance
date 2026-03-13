@@ -37,10 +37,49 @@
 .gage-form {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .gage-form .input { flex: 1; }
+
+.gage-category-select {
+  width: 140px !important;
+  flex: none !important;
+}
+
+.category-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.category-form .input { flex: 1; }
+
+.category-filters {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
+}
+
+.category-chip {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 0.3rem 0.8rem;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.category-chip.active {
+  background: rgba(78, 205, 196, 0.2);
+  border-color: #4ECDC4;
+  color: #4ECDC4;
+}
 
 .gages-list {
   display: flex;
@@ -53,11 +92,25 @@
 .gage-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.5rem;
   padding: 0.5rem 0.8rem;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 8px;
   font-size: 0.9rem;
+}
+
+.gage-category-tag {
+  font-size: 0.7rem;
+  background: rgba(102, 126, 234, 0.2);
+  color: #85C1E9;
+  padding: 0.15rem 0.5rem;
+  border-radius: 50px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.gage-text {
+  flex: 1;
 }
 
 .losing-team-banner {
@@ -121,15 +174,22 @@
 .assigned-arrow { color: rgba(255, 255, 255, 0.4); }
 .assigned-gage { color: #FFEAA7; }
 
-.malchance-complete { text-align: center; padding: 2rem; }
-.malchance-complete h2 { color: #4ECDC4; margin-bottom: 1.5rem; }
+.malchance-complete {
+  text-align: center;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.malchance-complete h2 { color: #4ECDC4; margin-bottom: 0.5rem; }
 
 .final-gages {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
   max-width: 500px;
-  margin: 0 auto 1.5rem;
+  width: 100%;
 }
 
 .final-gage-card {
@@ -144,9 +204,30 @@
 
 .final-player { font-weight: bold; color: #FF6B6B; font-size: 1.1rem; }
 .final-gage { color: #FFEAA7; font-size: 0.95rem; }
-.good-luck { font-size: 1.2rem; color: rgba(255, 255, 255, 0.6); margin-top: 1rem; }
+.good-luck { font-size: 1.2rem; color: rgba(255, 255, 255, 0.6); }
 
 .malchance-active {
   display: flex;
   flex-direction: column;
+}
+
+.btn-next {
+  display: inline-block;
+  background: linear-gradient(135deg, #4ECDC4, #45B7D1);
+  color: white;
+  border: none;
+  padding: 0.8rem 2rem;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: bold;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.4);
+}
+
+.btn-next:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(78, 205, 196, 0.6);
 }

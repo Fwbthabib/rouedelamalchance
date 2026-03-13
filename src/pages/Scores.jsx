@@ -1,11 +1,13 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useGame } from '../context/GameContext';
 import { Link } from 'react-router-dom';
+import Wheel from '../components/Wheel';
 import './Scores.css';
 
 export default function Scores() {
   const { state, dispatch } = useGame();
   const teams = state.currentGameTeams;
+  const [tiebreakMode, setTiebreakMode] = useState(false);
 
   function handleScoreChange(player, value) {
     const score = value === '' ? '' : parseInt(value, 10);
@@ -29,16 +31,30 @@ export default function Scores() {
   );
 
   const maxScore = allScoresFilled ? Math.max(...teamTotals) : 0;
-  const losingTeamIndex = allScoresFilled ? teamTotals.indexOf(maxScore) : -1;
 
-  function handleDesignateLosers() {
-    if (losingTeamIndex >= 0) {
-      dispatch({ type: 'SET_LOSING_TEAM', payload: losingTeamIndex });
-      dispatch({
-        type: 'SET_TEAM_SCORES',
-        payload: teamTotals.reduce((acc, total, i) => ({ ...acc, [i]: total }), {}),
-      });
-    }
+  // Trouver toutes les équipes à égalité au max
+  const tiedTeamIndexes = allScoresFilled
+    ? teamTotals.reduce((acc, total, i) => {
+        if (total === maxScore) acc.push(i);
+        return acc;
+      }, [])
+    : [];
+
+  const hasTie = tiedTeamIndexes.length > 1;
+  const losingTeamIndex = !hasTie && tiedTeamIndexes.length === 1 ? tiedTeamIndexes[0] : -1;
+
+  function handleDesignateLosers(teamIndex) {
+    dispatch({ type: 'SET_LOSING_TEAM', payload: teamIndex });
+    dispatch({
+      type: 'SET_TEAM_SCORES',
+      payload: teamTotals.reduce((acc, total, i) => ({ ...acc, [i]: total }), {}),
+    });
+  }
+
+  function handleTiebreakResult(teamName) {
+    const teamIndex = teamName.charCodeAt(teamName.length - 1) - 65;
+    handleDesignateLosers(teamIndex);
+    setTiebreakMode(false);
   }
 
   function getTeamLabel(index) {
@@ -52,6 +68,7 @@ export default function Scores() {
         <div className="empty-state">
           <span className="empty-icon">🎡</span>
           <p>Fais d'abord le tirage des équipes !</p>
+          <Link to="/tirage" className="btn btn-next">🎡 Aller au tirage</Link>
         </div>
       </div>
     );
@@ -74,7 +91,7 @@ export default function Scores() {
         {teams.map((team, teamIndex) => (
           <div
             key={teamIndex}
-            className={`score-team-card ${allScoresFilled && teamIndex === losingTeamIndex ? 'losing' : ''}`}
+            className={`score-team-card ${allScoresFilled && teamIndex === losingTeamIndex ? 'losing' : ''} ${allScoresFilled && hasTie && tiedTeamIndexes.includes(teamIndex) ? 'tied' : ''}`}
           >
             <div className="score-team-header">
               <h3>Équipe {getTeamLabel(teamIndex)}</h3>
@@ -104,21 +121,46 @@ export default function Scores() {
           <div className="summary-card">
             <h3>🏆 Résumé</h3>
             {teamTotals.map((total, i) => (
-              <div key={i} className={`summary-row ${i === losingTeamIndex ? 'loser' : ''}`}>
+              <div key={i} className={`summary-row ${i === losingTeamIndex ? 'loser' : ''} ${hasTie && tiedTeamIndexes.includes(i) ? 'tied' : ''}`}>
                 <span>Équipe {getTeamLabel(i)}</span>
                 <span className="summary-score">{total} coups</span>
                 {i === losingTeamIndex && <span className="loser-tag">💀 PERDANTS</span>}
+                {hasTie && tiedTeamIndexes.includes(i) && <span className="tie-tag">⚔️ ÉGALITÉ</span>}
               </div>
             ))}
           </div>
 
-          {state.losingTeam === null ? (
-            <button className="btn btn-designate" onClick={handleDesignateLosers}>
+          {hasTie && !tiebreakMode && state.losingTeam === null && (
+            <div className="tie-section">
+              <p className="tie-message">⚔️ Égalité entre {tiedTeamIndexes.map((i) => `Équipe ${getTeamLabel(i)}`).join(' et ')} !</p>
+              <button className="btn btn-tiebreak" onClick={() => setTiebreakMode(true)}>
+                🎡 Départager à la roue !
+              </button>
+            </div>
+          )}
+
+          {tiebreakMode && (
+            <div className="tiebreak-wheel">
+              <h3>⚔️ Roue de départage</h3>
+              <p>L'équipe tirée sera désignée perdante !</p>
+              <Wheel
+                items={tiedTeamIndexes.map((i) => `Équipe ${getTeamLabel(i)}`)}
+                onResult={handleTiebreakResult}
+                title="Qui sont les perdants ?"
+              />
+            </div>
+          )}
+
+          {!hasTie && state.losingTeam === null && (
+            <button className="btn btn-designate" onClick={() => handleDesignateLosers(losingTeamIndex)}>
               😈 Désigner les perdants → Roue de la Malchance
             </button>
-          ) : (
+          )}
+
+          {state.losingTeam !== null && (
             <div className="already-designated">
-              Les perdants sont désignés ! <Link to="/malchance">Direction la Roue de la Malchance 😈</Link>
+              💀 Équipe {getTeamLabel(state.losingTeam)} désignée perdante !
+              <Link to="/malchance" className="btn btn-next">😈 Aller à la Roue de la Malchance</Link>
             </div>
           )}
         </div>

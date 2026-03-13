@@ -40,10 +40,7 @@
   75% { transform: translateX(5px); }
 }
 
-.home-losers-card h2 {
-  color: #FF6B6B;
-  margin-bottom: 1rem;
-}
+.home-losers-card h2 { color: #FF6B6B; margin-bottom: 1rem; }
 
 .losers-list {
   display: flex;
@@ -109,22 +106,9 @@
   font-weight: bold;
 }
 
-.step-icon {
-  font-size: 2.5rem;
-  display: block;
-  margin-bottom: 0.5rem;
-}
-
-.step-card h3 {
-  margin: 0.3rem 0;
-  font-size: 1.1rem;
-}
-
-.step-card p {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
-  margin: 0.3rem 0;
-}
+.step-icon { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; }
+.step-card h3 { margin: 0.3rem 0; font-size: 1.1rem; }
+.step-card p { font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); margin: 0.3rem 0; }
 
 .step-status {
   display: inline-block;
@@ -137,9 +121,7 @@
   font-weight: 600;
 }
 
-.home-actions {
-  text-align: center;
-}
+.home-actions { text-align: center; }
 
 .btn-new-game {
   background: linear-gradient(135deg, #667eea, #764ba2);
@@ -158,4 +140,133 @@
 .btn-new-game:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+/* Confirm box */
+.confirm-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 234, 167, 0.3);
+  border-radius: 15px;
+  padding: 1.5rem;
+  text-align: center;
+  animation: slideDown 0.3s ease;
+}
+
+.confirm-box.nuke {
+  border-color: rgba(255, 107, 107, 0.5);
+  background: rgba(255, 107, 107, 0.05);
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.confirm-box p { margin-bottom: 1rem; font-weight: 600; }
+
+.confirm-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.btn-confirm-yes {
+  background: linear-gradient(135deg, #FF6B6B, #ee5a24);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.5rem;
+  border-radius: 50px;
+  font-family: inherit;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-confirm-yes.nuke {
+  background: linear-gradient(135deg, #c0392b, #e74c3c);
+}
+
+.btn-confirm-no {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.6rem 1.5rem;
+  border-radius: 50px;
+  font-family: inherit;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-confirm-no:hover { background: rgba(255, 255, 255, 0.2); }
+
+/* Data section */
+.home-bottom-section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1.5rem;
+}
+
+.home-bottom-section h2 {
+  text-align: center;
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.2rem;
+}
+
+.data-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.btn-export, .btn-import {
+  background: rgba(78, 205, 196, 0.15);
+  border: 1px solid rgba(78, 205, 196, 0.3);
+  color: #4ECDC4;
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-export:hover, .btn-import:hover {
+  background: rgba(78, 205, 196, 0.25);
+}
+
+.btn-nuke {
+  background: rgba(255, 107, 107, 0.15);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  color: #FF6B6B;
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-nuke:hover { background: rgba(255, 107, 107, 0.25); }
+
+.import-message {
+  text-align: center;
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-weight: 600;
+  animation: slideDown 0.3s ease;
+}
+
+.import-message.success {
+  background: rgba(78, 205, 196, 0.15);
+  color: #4ECDC4;
+}
+
+.import-message.error {
+  background: rgba(255, 107, 107, 0.15);
+  color: #FF6B6B;
 }

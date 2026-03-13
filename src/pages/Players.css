@@ -108,3 +108,29 @@
   background: #FF6B6B;
   color: white;
 }
+
+.next-step {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.btn-next {
+  display: inline-block;
+  background: linear-gradient(135deg, #4ECDC4, #45B7D1);
+  color: white;
+  border: none;
+  padding: 0.8rem 2rem;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: bold;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.4);
+}
+
+.btn-next:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(78, 205, 196, 0.6);
+}
