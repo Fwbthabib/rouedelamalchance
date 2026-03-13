@@ -40,7 +40,7 @@ const defaultState = {
 function gameReducer(state, action) {
   switch (action.type) {
     case 'ADD_PLAYER':
-      if (state.players.includes(action.payload)) return state;
+      if (state.players.some((p) => p.toLowerCase() === action.payload.toLowerCase())) return state;
       return { ...state, players: [...state.players, action.payload] };
     case 'REMOVE_PLAYER': {
       const newScores = { ...state.scores };
