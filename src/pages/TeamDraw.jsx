@@ -180,16 +180,23 @@ export default function TeamDraw() {
             ))}
           </div>
 
-          {remainingPlayers.length > 0 ? (
+          {remainingPlayers.length > 1 ? (
             <>
               <div className="draw-info">
                 <p>Tirage → Équipe {getTargetTeamLabel()}</p>
                 <p className="remaining-count">
-                  {remainingPlayers.length} joueur{remainingPlayers.length > 1 ? 's' : ''} restant{remainingPlayers.length > 1 ? 's' : ''}
+                  {remainingPlayers.length} joueurs restants
                 </p>
               </div>
               <Wheel items={remainingPlayers} onResult={handleWheelResult} />
             </>
+          ) : remainingPlayers.length === 1 ? (
+            <div className="draw-last-player">
+              <p>Dernier joueur : <strong>{remainingPlayers[0]}</strong></p>
+              <button className="btn btn-start" onClick={() => handleWheelResult(remainingPlayers[0])}>
+                ✅ Placer dans l'équipe {getTargetTeamLabel()}
+              </button>
+            </div>
           ) : (
             <div className="draw-complete">
               <h2>🎉 Tirage terminé !</h2>
