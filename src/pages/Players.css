@@ -1,0 +1,85 @@
+.players-page {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.page-desc {
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 1.5rem;
+}
+
+.player-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.player-form .input {
+  flex: 1;
+}
+
+.players-count {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  flex-wrap: wrap;
+}
+
+.odd-warning {
+  font-size: 0.8rem;
+  color: #FFEAA7;
+  background: rgba(255, 234, 167, 0.1);
+  padding: 0.2rem 0.8rem;
+  border-radius: 50px;
+}
+
+.players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.player-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0.8rem 1.2rem;
+  animation: slideIn 0.3s ease forwards;
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+@keyframes slideIn {
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.player-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.btn-remove {
+  background: rgba(255, 107, 107, 0.2);
+  border: none;
+  color: #FF6B6B;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-remove:hover {
+  background: #FF6B6B;
+  color: white;
+}

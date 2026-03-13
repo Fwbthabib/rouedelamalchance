@@ -1,0 +1,152 @@
+.malchance-page {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.btn-manage-gages {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.5rem 1.2rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+}
+
+.btn-manage-gages:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.gages-manager {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 1.2rem;
+  margin-bottom: 1.5rem;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.gage-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.gage-form .input { flex: 1; }
+
+.gages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.gage-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.8rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.losing-team-banner {
+  text-align: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.15), rgba(255, 107, 107, 0.05));
+  border: 2px solid rgba(255, 107, 107, 0.3);
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
+}
+
+.losing-team-banner h2 { color: #FF6B6B; margin-bottom: 1rem; }
+
+.loser-badges {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.loser-badge-mal {
+  padding: 0.4rem 1rem;
+  border-radius: 50px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.loser-badge-mal.current {
+  background: linear-gradient(135deg, #FF6B6B, #ee5a24);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
+}
+
+.loser-badge-mal.done {
+  background: rgba(78, 205, 196, 0.2);
+  border-color: #4ECDC4;
+  color: #4ECDC4;
+}
+
+.current-spinner { text-align: center; }
+.current-spinner h3 { margin-bottom: 1rem; color: rgba(255, 255, 255, 0.9); }
+.current-spinner strong { color: #FF6B6B; }
+
+.assigned-list { margin-top: 1.5rem; }
+.assigned-list h3 { margin-bottom: 0.8rem; color: rgba(255, 255, 255, 0.8); }
+
+.assigned-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  margin-bottom: 0.4rem;
+}
+
+.assigned-player { font-weight: bold; color: #FF6B6B; min-width: 100px; }
+.assigned-arrow { color: rgba(255, 255, 255, 0.4); }
+.assigned-gage { color: #FFEAA7; }
+
+.malchance-complete { text-align: center; padding: 2rem; }
+.malchance-complete h2 { color: #4ECDC4; margin-bottom: 1.5rem; }
+
+.final-gages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  max-width: 500px;
+  margin: 0 auto 1.5rem;
+}
+
+.final-gage-card {
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.15), rgba(102, 126, 234, 0.15));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.final-player { font-weight: bold; color: #FF6B6B; font-size: 1.1rem; }
+.final-gage { color: #FFEAA7; font-size: 0.95rem; }
+.good-luck { font-size: 1.2rem; color: rgba(255, 255, 255, 0.6); margin-top: 1rem; }
+
+.malchance-active {
+  display: flex;
+  flex-direction: column;
+}
