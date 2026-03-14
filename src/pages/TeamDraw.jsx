@@ -24,8 +24,13 @@ export default function TeamDraw() {
   }, [state.players.length, teamSize, immunePlayer, needsImmune]);
 
   // Auto-assign remaining players when they exactly fill the next team (fill mode only)
+  // Only triggers after at least one player has been drawn (not on first render)
   useEffect(() => {
     if (!started || drawMode !== 'fill' || remainingPlayers.length === 0 || autoAssignedRef.current) return;
+
+    // Don't auto-assign if no player has been drawn yet
+    const hasDrawnPlayers = teams.some((t) => t.length > 0);
+    if (!hasDrawnPlayers) return;
 
     // Find the target team (first non-full)
     const targetIdx = teams.findIndex((t) => t.length < teamSize);
