@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { playTick, playWinSound, playSpinSound } from '../hooks/useSounds';
+import { playTickPlayers, playTickGages, playPlayerSelectedSound, playGageRevealSound, playSpinSound } from '../hooks/useSounds';
 import './Wheel.css';
 
 const COLORS = [
@@ -9,7 +9,7 @@ const COLORS = [
   '#F1948A', '#AED6F1', '#A3E4D7', '#FAD7A0',
 ];
 
-export default function Wheel({ items, onResult, title }) {
+export default function Wheel({ items, onResult, title, type = 'players' }) {
   const canvasRef = useRef(null);
   const [spinning, setSpinning] = useState(false);
   const [winner, setWinner] = useState(null);
@@ -113,7 +113,7 @@ export default function Wheel({ items, onResult, title }) {
       const currentSlice = getCurrentSlice(rot);
       if (currentSlice !== lastTickSlice.current) {
         lastTickSlice.current = currentSlice;
-        playTick();
+        (type === 'gages' ? playTickGages : playTickPlayers)();
       }
 
       if (progress < 1) {
@@ -123,7 +123,7 @@ export default function Wheel({ items, onResult, title }) {
         const winnerIndex = getCurrentSlice(rot);
         const result = items[winnerIndex];
         setWinner(result);
-        playWinSound();
+        (type === 'gages' ? playGageRevealSound : playPlayerSelectedSound)();
         if (onResult) onResult(result);
       }
     }

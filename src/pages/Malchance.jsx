@@ -188,6 +188,7 @@ export default function Malchance() {
               items={gageTexts}
               onResult={handleGageResult}
               title={`Gage pour ${losingTeam[currentLoserIndex]}`}
+              type="gages"
             />
           </div>
 
