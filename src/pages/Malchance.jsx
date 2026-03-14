@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { useGame } from '../context/GameContext';
 import { Link } from 'react-router-dom';
 import Wheel from '../components/Wheel';
+import { playFiestaSound } from '../hooks/useSounds';
 import './Malchance.css';
+
+const SPECIAL_RIEN = '🎉 Rien !';
+const SPECIAL_X2 = '💀 x2';
 
 export default function Malchance() {
   const { state, dispatch } = useGame();
@@ -17,6 +21,8 @@ export default function Malchance() {
   const [filterCategory, setFilterCategory] = useState('Toutes');
   const [newPlayerGage, setNewPlayerGage] = useState('');
   const [newPlayerGageCategory, setNewPlayerGageCategory] = useState('');
+  const [extraSpins, setExtraSpins] = useState(0);
+  const [wheelKey, setWheelKey] = useState(0);
 
   const losingTeam = state.losingTeam !== null ? state.currentGameTeams[state.losingTeam] : [];
   const categories = state.gageCategories || ['Films', 'Spectacles', 'Exposés', 'Divers'];
@@ -25,10 +31,12 @@ export default function Malchance() {
     ? state.gages
     : state.gages.filter((g) => g.category === filterCategory);
 
-  // Get current player's personal gages for the wheel
+  // Get current player's personal gages for the wheel + special items
   const currentPlayer = losingTeam[currentLoserIndex];
   const currentPlayerGages = currentPlayer ? (state.playerGages[currentPlayer] || []) : [];
   const currentPlayerGageTexts = currentPlayerGages.map((g) => g.text);
+  // Always add "Rien" and "x2" to the wheel
+  const wheelItems = [...currentPlayerGageTexts, SPECIAL_RIEN, SPECIAL_X2];
 
   function handleAddGage(e) {
     e.preventDefault();
@@ -65,20 +73,13 @@ export default function Malchance() {
     });
   }
 
-  function handleGageResult(gageText) {
-    const player = losingTeam[currentLoserIndex];
-    const newAssigned = [...assignedGages, { player, gage: gageText }];
-    setAssignedGages(newAssigned);
-
-    // Consume this gage from the player's personal list
-    dispatch({ type: 'CONSUME_PLAYER_GAGE', payload: { player, gageText } });
-
+  function moveToNextPlayer(currentAssigned) {
     if (currentLoserIndex + 1 >= losingTeam.length) {
       setAllDone(true);
       const historyEntry = {
         date: new Date().toISOString(),
         losers: [...losingTeam],
-        gages: newAssigned,
+        gages: currentAssigned,
         teams: state.currentGameTeams.map((t, i) => ({
           name: String.fromCharCode(65 + i),
           players: [...t],
@@ -90,6 +91,56 @@ export default function Malchance() {
       dispatch({ type: 'ADD_HISTORY_ENTRY', payload: historyEntry });
     } else {
       setCurrentLoserIndex(currentLoserIndex + 1);
+      setExtraSpins(0);
+    }
+  }
+
+  function handleGageResult(gageText) {
+    const player = losingTeam[currentLoserIndex];
+
+    if (gageText === SPECIAL_RIEN) {
+      // Fiesta! No gage assigned
+      setTimeout(() => playFiestaSound(), 100);
+      const newAssigned = [...assignedGages, { player, gage: '🎉 Rien !' }];
+      setAssignedGages(newAssigned);
+
+      if (extraSpins > 0) {
+        // Still has extra spins from x2
+        setExtraSpins(extraSpins - 1);
+        setWheelKey((k) => k + 1);
+        if (extraSpins - 1 === 0) {
+          // No more extra spins, but this "Rien" counts as one of the x2 spins
+          // Don't move to next player yet if there's still 1 more spin
+        }
+      } else {
+        moveToNextPlayer(newAssigned);
+      }
+      return;
+    }
+
+    if (gageText === SPECIAL_X2) {
+      // x2: must spin 2 more times!
+      setExtraSpins(extraSpins + 2);
+      setWheelKey((k) => k + 1);
+      return;
+    }
+
+    // Normal gage
+    const newAssigned = [...assignedGages, { player, gage: gageText }];
+    setAssignedGages(newAssigned);
+
+    // Consume this gage from the player's personal list
+    dispatch({ type: 'CONSUME_PLAYER_GAGE', payload: { player, gageText } });
+
+    if (extraSpins > 0) {
+      setExtraSpins(extraSpins - 1);
+      setWheelKey((k) => k + 1);
+      if (extraSpins - 1 === 0) {
+        // Last extra spin done, move to next
+        // Need timeout for state to settle
+      }
+    } else {
+      moveToNextPlayer(newAssigned);
     }
   }
 
@@ -102,6 +153,11 @@ export default function Malchance() {
   const managedFilteredGages = filterCategory === 'Toutes'
     ? managedPlayerGages
     : managedPlayerGages.filter((g) => g.category === filterCategory);
+
+  // Determine spin status text
+  const spinStatusText = extraSpins > 0
+    ? `💀 x2 actif ! Encore ${extraSpins} tour${extraSpins > 1 ? 's' : ''} !`
+    : null;
 
   return (
     <div className="malchance-page">
@@ -212,7 +268,7 @@ export default function Malchance() {
       {managingPlayerGages && (
         <div className="gages-manager player-gages-manager">
           <h3 className="manager-title">Roue de {managingPlayerGages}</h3>
-          <p className="manager-desc">{managedPlayerGages.length} gage{managedPlayerGages.length !== 1 ? 's' : ''} restant{managedPlayerGages.length !== 1 ? 's' : ''}</p>
+          <p className="manager-desc">{managedPlayerGages.length} gage{managedPlayerGages.length !== 1 ? 's' : ''} restant{managedPlayerGages.length !== 1 ? 's' : ''} + "Rien" et "x2" (toujours présents)</p>
 
           <div className="player-gage-actions">
             <button className="btn btn-add-all-gages" onClick={() => handleAddAllGlobalGages(managingPlayerGages)}>
@@ -309,9 +365,13 @@ export default function Malchance() {
 
           <div className="current-spinner">
             <h3>🎰 C'est au tour de : <strong>{currentPlayer}</strong></h3>
-            {currentPlayerGageTexts.length > 0 ? (
+            {spinStatusText && (
+              <div className="x2-banner">{spinStatusText}</div>
+            )}
+            {wheelItems.length > 0 ? (
               <Wheel
-                items={currentPlayerGageTexts}
+                key={wheelKey}
+                items={wheelItems}
                 onResult={handleGageResult}
                 title={`Gage pour ${currentPlayer}`}
                 type="gages"
@@ -328,7 +388,7 @@ export default function Malchance() {
             <div className="assigned-list">
               <h3>Gages attribués :</h3>
               {assignedGages.map(({ player, gage }, i) => (
-                <div key={i} className="assigned-item">
+                <div key={i} className={`assigned-item ${gage === '🎉 Rien !' ? 'assigned-rien' : ''}`}>
                   <span className="assigned-player">{player}</span>
                   <span className="assigned-arrow">→</span>
                   <span className="assigned-gage">{gage}</span>
@@ -342,7 +402,7 @@ export default function Malchance() {
           <h2>🎉 Tous les gages sont distribués !</h2>
           <div className="final-gages">
             {assignedGages.map(({ player, gage }, i) => (
-              <div key={i} className="final-gage-card">
+              <div key={i} className={`final-gage-card ${gage === '🎉 Rien !' ? 'final-rien' : ''}`}>
                 <span className="final-player">{player}</span>
                 <span className="final-gage">{gage}</span>
               </div>

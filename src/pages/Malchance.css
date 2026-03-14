@@ -251,6 +251,41 @@
 .current-spinner h3 { margin-bottom: 1rem; color: rgba(255, 255, 255, 0.9); }
 .current-spinner strong { color: #FF6B6B; }
 
+.x2-banner {
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(238, 90, 36, 0.2));
+  border: 2px solid rgba(255, 107, 107, 0.4);
+  border-radius: 12px;
+  padding: 0.6rem 1.2rem;
+  color: #FF6B6B;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  animation: pulse-x2 1s ease-in-out infinite;
+}
+
+@keyframes pulse-x2 {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+.assigned-rien {
+  background: rgba(78, 205, 196, 0.1) !important;
+  border: 1px solid rgba(78, 205, 196, 0.3);
+  border-radius: 10px;
+}
+
+.assigned-rien .assigned-gage {
+  color: #4ECDC4 !important;
+}
+
+.final-rien {
+  background: linear-gradient(135deg, rgba(78, 205, 196, 0.2), rgba(69, 183, 209, 0.2)) !important;
+  border-color: rgba(78, 205, 196, 0.3) !important;
+}
+
+.final-rien .final-player { color: #4ECDC4 !important; }
+.final-rien .final-gage { color: #4ECDC4 !important; }
+
 .no-gages-warning {
   background: rgba(255, 234, 167, 0.1);
   border: 1px solid rgba(255, 234, 167, 0.3);

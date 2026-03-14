@@ -289,3 +289,83 @@ export function playGageRevealSound() {
   const variation = gageRevealVariations[Math.floor(Math.random() * gageRevealVariations.length)];
   variation();
 }
+
+// --- Son FIESTA quand on tombe sur "Rien" (party joyeuse!) ---
+export function playFiestaSound() {
+  ensureContext();
+  if (!audioCtx) return;
+
+  const t = audioCtx.currentTime;
+
+  // Mélodie montante festive (Do Mi Sol Do aigu Mi aigu)
+  const notes = [523, 659, 784, 1047, 1319, 1568];
+  notes.forEach((freq, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(freq, t + i * 0.08);
+    gain.gain.setValueAtTime(0, t + i * 0.08);
+    gain.gain.linearRampToValueAtTime(0.13, t + i * 0.08 + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + i * 0.08 + 0.12);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(t + i * 0.08);
+    osc.stop(t + i * 0.08 + 0.12);
+
+    // Harmonique brillante
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(freq * 2, t + i * 0.08);
+    gain2.gain.setValueAtTime(0, t + i * 0.08);
+    gain2.gain.linearRampToValueAtTime(0.05, t + i * 0.08 + 0.015);
+    gain2.gain.exponentialRampToValueAtTime(0.01, t + i * 0.08 + 0.1);
+    osc2.connect(gain2);
+    gain2.connect(audioCtx.destination);
+    osc2.start(t + i * 0.08);
+    osc2.stop(t + i * 0.08 + 0.12);
+  });
+
+  // Accord final tenu (Do majeur)
+  const chordStart = t + notes.length * 0.08 + 0.05;
+  [1047, 1319, 1568].forEach((freq) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, chordStart);
+    // Vibrato léger
+    const lfo = audioCtx.createOscillator();
+    const lfoGain = audioCtx.createGain();
+    lfo.frequency.setValueAtTime(6, chordStart);
+    lfoGain.gain.setValueAtTime(4, chordStart);
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+    lfo.start(chordStart);
+    lfo.stop(chordStart + 0.6);
+
+    gain.gain.setValueAtTime(0.12, chordStart);
+    gain.gain.setValueAtTime(0.12, chordStart + 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.01, chordStart + 0.6);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(chordStart);
+    osc.stop(chordStart + 0.6);
+  });
+
+  // Petites "étincelles" aléatoires (bruit de confettis)
+  for (let i = 0; i < 8; i++) {
+    const sparkTime = t + 0.1 + Math.random() * 0.8;
+    const sparkFreq = 2000 + Math.random() * 3000;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(sparkFreq, sparkTime);
+    osc.frequency.exponentialRampToValueAtTime(sparkFreq * 0.5, sparkTime + 0.05);
+    gain.gain.setValueAtTime(0.04, sparkTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, sparkTime + 0.05);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(sparkTime);
+    osc.stop(sparkTime + 0.06);
+  }
+}
