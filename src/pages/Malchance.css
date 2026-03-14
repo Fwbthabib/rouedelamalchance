@@ -103,7 +103,7 @@
 }
 
 .empty-gages {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.55);
   font-style: italic;
   text-align: center;
   padding: 1rem;
@@ -226,7 +226,7 @@
 
 .loser-gage-count {
   font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.55);
   font-weight: 500;
 }
 
@@ -304,6 +304,44 @@
 .no-gages-warning p:last-child {
   font-size: 0.9rem;
   color: rgba(255, 234, 167, 0.7);
+}
+
+/* Undo button */
+.btn-undo {
+  background: rgba(255, 234, 167, 0.15);
+  border: 1px solid rgba(255, 234, 167, 0.3);
+  color: #FFEAA7;
+  padding: 0.5rem 1.2rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  align-self: center;
+  margin-top: 1rem;
+}
+
+.btn-undo:hover {
+  background: rgba(255, 234, 167, 0.25);
+}
+
+/* Loser badge tags */
+.loser-done-tag, .loser-current-tag {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.loser-done-tag { color: #4ECDC4; }
+.loser-current-tag { color: rgba(255, 255, 255, 0.8); }
+
+.malchance-final-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
 }
 
 .assigned-list { margin-top: 1.5rem; }

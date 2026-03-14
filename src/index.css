@@ -16,6 +16,10 @@
   --text-secondary: rgba(255, 255, 255, 0.6);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg-primary);
@@ -87,7 +91,7 @@ h2 {
 }
 
 .input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 select.input {
@@ -152,7 +156,7 @@ select.input option {
 .empty-state {
   text-align: center;
   padding: 3rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .empty-icon {
@@ -178,4 +182,58 @@ select.input option {
   min-height: 200px;
   color: rgba(255, 255, 255, 0.5);
   font-size: 1.1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Back button */
+.btn-back {
+  display: inline-block;
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  transition: color 0.2s ease;
+}
+
+.btn-back:hover {
+  color: #4ECDC4;
+}
+
+/* Page fade-in transition */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.main-content > * {
+  animation: fadeIn 0.25s ease;
+}
+
+/* Team status badges (accessibility: not color-only) */
+.team-status-badge {
+  font-size: 0.65rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 50px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.losing-badge {
+  background: rgba(255, 107, 107, 0.25);
+  color: #FF6B6B;
+  border: 1px solid rgba(255, 107, 107, 0.4);
+}
+
+.tied-badge {
+  background: rgba(255, 234, 167, 0.25);
+  color: #FFEAA7;
+  border: 1px solid rgba(255, 234, 167, 0.4);
+}
+
+.current-badge {
+  background: rgba(78, 205, 196, 0.25);
+  color: #4ECDC4;
+  border: 1px solid rgba(78, 205, 196, 0.4);
 }

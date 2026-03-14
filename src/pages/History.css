@@ -99,7 +99,7 @@
 }
 
 .history-gage-player { font-weight: bold; color: #FF6B6B; min-width: 80px; }
-.history-gage-arrow { color: rgba(255, 255, 255, 0.3); }
+.history-gage-arrow { color: rgba(255, 255, 255, 0.5); }
 .history-gage-text { color: #FFEAA7; }
 
 .history-pagination {

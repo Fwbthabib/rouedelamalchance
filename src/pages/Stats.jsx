@@ -1,15 +1,25 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useGame } from '../context/GameContext';
+import { Link } from 'react-router-dom';
 import './Stats.css';
+
+const SORT_OPTIONS = [
+  { key: 'gamesPlayed', label: 'Parties' },
+  { key: 'timesLost', label: 'Défaites' },
+  { key: 'avgScore', label: 'Moy. score' },
+  { key: 'timesImmune', label: 'Immunités' },
+  { key: 'gagesCount', label: 'Gages' },
+];
 
 export default function Stats() {
   const { state } = useGame();
+  const [sortKey, setSortKey] = useState('gamesPlayed');
+  const [sortDesc, setSortDesc] = useState(true);
 
   const playerStats = useMemo(() => {
     const stats = {};
 
     state.history.forEach((entry) => {
-      // Tous les joueurs de cette partie
       const allPlayers = entry.teams.flatMap((t) => t.players);
       if (entry.immunePlayer) allPlayers.push(entry.immunePlayer);
 
@@ -33,33 +43,63 @@ export default function Stats() {
         }
       });
 
-      // Perdants
       entry.losers.forEach((loser) => {
         if (stats[loser]) stats[loser].timesLost++;
       });
 
-      // Gages
       entry.gages.forEach(({ player, gage }) => {
         if (stats[player]) stats[player].gagesReceived.push(gage);
       });
 
-      // Immunité
       if (entry.immunePlayer && stats[entry.immunePlayer]) {
         stats[entry.immunePlayer].timesImmune++;
       }
     });
 
-    return Object.values(stats).sort((a, b) => b.gamesPlayed - a.gamesPlayed);
+    return Object.values(stats);
   }, [state.history]);
+
+  const sortedStats = useMemo(() => {
+    const sorted = [...playerStats].sort((a, b) => {
+      let va, vb;
+      if (sortKey === 'avgScore') {
+        va = a.scoreCount > 0 ? a.totalScore / a.scoreCount : 0;
+        vb = b.scoreCount > 0 ? b.totalScore / b.scoreCount : 0;
+      } else if (sortKey === 'gagesCount') {
+        va = a.gagesReceived.length;
+        vb = b.gagesReceived.length;
+      } else {
+        va = a[sortKey];
+        vb = b[sortKey];
+      }
+      return sortDesc ? vb - va : va - vb;
+    });
+    return sorted;
+  }, [playerStats, sortKey, sortDesc]);
 
   const topLoser = playerStats.length > 0
     ? playerStats.reduce((a, b) => a.timesLost > b.timesLost ? a : b)
     : null;
 
+  function handleSort(key) {
+    if (sortKey === key) {
+      setSortDesc(!sortDesc);
+    } else {
+      setSortKey(key);
+      setSortDesc(true);
+    }
+  }
+
+  function getSortIndicator(key) {
+    if (sortKey !== key) return '';
+    return sortDesc ? ' ↓' : ' ↑';
+  }
+
   if (state.history.length === 0) {
     return (
       <div className="stats-page">
         <h1>📈 Statistiques</h1>
+        <Link to="/" className="btn-back">← Accueil</Link>
         <div className="empty-state">
           <span className="empty-icon">📊</span>
           <p>Pas encore de stats — jouez d'abord quelques parties !</p>
@@ -71,6 +111,7 @@ export default function Stats() {
   return (
     <div className="stats-page">
       <h1>📈 Statistiques</h1>
+      <Link to="/" className="btn-back">← Accueil</Link>
 
       <div className="stats-overview">
         <div className="stat-card">
@@ -88,13 +129,17 @@ export default function Stats() {
       <div className="stats-table">
         <div className="stats-header">
           <span className="col-name">Joueur</span>
-          <span className="col-num">Parties</span>
-          <span className="col-num">Défaites</span>
-          <span className="col-num">Moy. score</span>
-          <span className="col-num">Immunités</span>
-          <span className="col-num">Gages</span>
+          {SORT_OPTIONS.map((opt) => (
+            <button
+              key={opt.key}
+              className={`col-num col-sortable ${sortKey === opt.key ? 'col-sorted' : ''}`}
+              onClick={() => handleSort(opt.key)}
+            >
+              {opt.label}{getSortIndicator(opt.key)}
+            </button>
+          ))}
         </div>
-        {playerStats.map((p) => (
+        {sortedStats.map((p) => (
           <div key={p.name} className="stats-row">
             <span className="col-name">
               {p.name}

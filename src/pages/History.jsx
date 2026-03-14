@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useGame } from '../context/GameContext';
+import { Link } from 'react-router-dom';
 import './History.css';
 
 const ITEMS_PER_PAGE = 5;
@@ -26,6 +27,7 @@ export default function History() {
   return (
     <div className="history-page">
       <h1>📜 Historique des Parties</h1>
+      <Link to="/" className="btn-back">← Accueil</Link>
 
       {state.lastLosers.length > 0 && (
         <div className="last-losers-card">

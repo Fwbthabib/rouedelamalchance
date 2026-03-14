@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useGame } from '../context/GameContext';
+import { Link } from 'react-router-dom';
 import Wheel from '../components/Wheel';
-import ScoresSummary from '../components/ScoresSummary';
-import { getTeamLabel, computeTeamTotals, findTieBreakInfo } from '../utils/gameHelpers';
+import { getTeamLabel } from '../utils/gameHelpers';
 import './TeamDraw.css';
 
 export default function TeamDraw() {
@@ -14,7 +14,6 @@ export default function TeamDraw() {
   const [immunePlayer, setImmunePlayer] = useState(state.immunePlayer);
   const [currentTeamIndex, setCurrentTeamIndex] = useState(0);
   const [started, setStarted] = useState(false);
-  const [tiebreakMode, setTiebreakMode] = useState(false);
   const autoAssignedRef = useRef(false);
 
   const needsImmune = state.players.length % teamSize !== 0;
@@ -103,39 +102,6 @@ export default function TeamDraw() {
     }, 500);
   }
 
-  function handleScoreChange(player, value) {
-    const score = value === '' ? '' : parseInt(value, 10);
-    dispatch({
-      type: 'SET_SCORE',
-      payload: { player, score: isNaN(score) ? '' : score },
-    });
-  }
-
-  const teamTotals = useMemo(() => computeTeamTotals(teams, state.scores), [teams, state.scores]);
-
-  const allScoresFilled = teams.length > 0 && remainingPlayers.length === 0 && teams.every((team) =>
-    team.length > 0 && team.every((player) => typeof state.scores[player] === 'number')
-  );
-
-  const { tiedTeamIndexes, hasTie, losingTeamIndex } = useMemo(
-    () => findTieBreakInfo(teamTotals, allScoresFilled),
-    [teamTotals, allScoresFilled]
-  );
-
-  function handleDesignateLosers(teamIndex) {
-    dispatch({ type: 'SET_LOSING_TEAM', payload: teamIndex });
-    dispatch({
-      type: 'SET_TEAM_SCORES',
-      payload: teamTotals.reduce((acc, total, i) => ({ ...acc, [i]: total }), {}),
-    });
-  }
-
-  function handleTiebreakResult(teamName) {
-    const teamIndex = teamName.charCodeAt(teamName.length - 1) - 65;
-    handleDesignateLosers(teamIndex);
-    setTiebreakMode(false);
-  }
-
   function getTargetTeamLabel() {
     if (drawMode === 'fill') {
       const idx = teams.findIndex((t) => t.length < teamSize);
@@ -149,6 +115,7 @@ export default function TeamDraw() {
   return (
     <div className="teamdraw-page">
       <h1>🎡 Tirage des Équipes</h1>
+      <Link to="/joueurs" className="btn-back">← Joueurs</Link>
 
       {!started ? (
         <div className="draw-config">
@@ -230,26 +197,18 @@ export default function TeamDraw() {
             {teams.map((team, i) => (
               <div
                 key={i}
-                className={`team-card ${currentTeamIndex === i && remainingPlayers.length > 0 ? 'current' : ''} ${allScoresFilled && i === losingTeamIndex ? 'losing' : ''} ${allScoresFilled && hasTie && tiedTeamIndexes.includes(i) ? 'tied' : ''}`}
+                className={`team-card ${currentTeamIndex === i && remainingPlayers.length > 0 ? 'current' : ''}`}
               >
                 <div className="team-card-header">
                   <h3>Équipe {getTeamLabel(i)}</h3>
-                  {drawComplete && <span className="team-total">Total : {teamTotals[i]} coups</span>}
+                  {currentTeamIndex === i && remainingPlayers.length > 0 && (
+                    <span className="team-status-badge current-badge">En cours</span>
+                  )}
                 </div>
                 <div className="team-members">
                   {team.map((member) => (
                     <div key={member} className="member-row">
                       <span className="member-badge">{member}</span>
-                      {drawComplete && (
-                        <input
-                          type="number"
-                          min="0"
-                          value={state.scores[member] ?? ''}
-                          onChange={(e) => handleScoreChange(member, e.target.value)}
-                          placeholder="Score"
-                          className="input score-input-inline"
-                        />
-                      )}
                     </div>
                   ))}
                   {team.length < teamSize && remainingPlayers.length > 0 && (
@@ -280,23 +239,12 @@ export default function TeamDraw() {
           ) : (
             <div className="draw-scores-section">
               <h2>🎉 Tirage terminé !</h2>
-              <p className="scores-instruction">Entre les scores de chaque joueur — au golf, le plus de coups = les perdants !</p>
-
-              {allScoresFilled && (
-                <ScoresSummary
-                  teamTotals={teamTotals}
-                  tiedTeamIndexes={tiedTeamIndexes}
-                  hasTie={hasTie}
-                  losingTeamIndex={losingTeamIndex}
-                  tiebreakMode={tiebreakMode}
-                  setTiebreakMode={setTiebreakMode}
-                  losingTeam={state.losingTeam}
-                  onDesignateLosers={handleDesignateLosers}
-                  onTiebreakResult={handleTiebreakResult}
-                />
-              )}
+              <p className="scores-instruction">Les équipes sont formées. Direction les scores !</p>
 
               <div className="draw-complete-actions">
+                <Link to="/scores" className="btn btn-next">
+                  📊 Étape suivante : Scores →
+                </Link>
                 <button className="btn btn-start" onClick={() => { setStarted(false); autoAssignedRef.current = false; }}>
                   🔄 Refaire le tirage
                 </button>

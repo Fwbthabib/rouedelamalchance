@@ -86,6 +86,24 @@
   text-align: center;
 }
 
+.col-sortable {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.col-sortable:hover {
+  color: #4ECDC4;
+}
+
+.col-sorted {
+  color: #4ECDC4 !important;
+}
+
 .col-losses {
   color: #FF6B6B;
   font-weight: 700;
@@ -127,5 +145,5 @@
 
 .player-gages li::before {
   content: '→ ';
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.5);
 }

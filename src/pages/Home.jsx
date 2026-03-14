@@ -7,7 +7,9 @@ export default function Home() {
   const { state, dispatch } = useGame();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showNukeConfirm, setShowNukeConfirm] = useState(false);
+  const [showImportConfirm, setShowImportConfirm] = useState(false);
   const [importMessage, setImportMessage] = useState(null);
+  const [pendingImportData, setPendingImportData] = useState(null);
   const fileInputRef = useRef(null);
 
   function handleResetGame() {
@@ -38,9 +40,8 @@ export default function Home() {
     reader.onload = (evt) => {
       try {
         const data = JSON.parse(evt.target.result);
-        dispatch({ type: 'IMPORT_DATA', payload: data });
-        setImportMessage('Données importées avec succès !');
-        setTimeout(() => setImportMessage(null), 3000);
+        setPendingImportData(data);
+        setShowImportConfirm(true);
       } catch {
         setImportMessage('Erreur : fichier invalide');
         setTimeout(() => setImportMessage(null), 3000);
@@ -48,6 +49,21 @@ export default function Home() {
     };
     reader.readAsText(file);
     e.target.value = '';
+  }
+
+  function confirmImport() {
+    if (pendingImportData) {
+      dispatch({ type: 'IMPORT_DATA', payload: pendingImportData });
+      setImportMessage('Données importées avec succès !');
+      setTimeout(() => setImportMessage(null), 3000);
+    }
+    setShowImportConfirm(false);
+    setPendingImportData(null);
+  }
+
+  function cancelImport() {
+    setShowImportConfirm(false);
+    setPendingImportData(null);
   }
 
   return (
@@ -156,6 +172,15 @@ export default function Home() {
             </div>
           )}
         </div>
+        {showImportConfirm && (
+          <div className="confirm-box">
+            <p>⚠️ L'import va remplacer TOUTES les données actuelles. Exporte d'abord si tu veux garder une copie !</p>
+            <div className="confirm-buttons">
+              <button className="btn btn-confirm-yes" onClick={confirmImport}>Oui, importer</button>
+              <button className="btn btn-confirm-no" onClick={cancelImport}>Non, annuler</button>
+            </div>
+          </div>
+        )}
         {importMessage && (
           <div className={`import-message ${importMessage.includes('Erreur') ? 'error' : 'success'}`}>
             {importMessage}

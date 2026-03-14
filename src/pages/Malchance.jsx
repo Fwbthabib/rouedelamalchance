@@ -22,6 +22,8 @@ export default function Malchance() {
   const [newPlayerGageCategory, setNewPlayerGageCategory] = useState('');
   const [extraSpins, setExtraSpins] = useState(0);
   const [wheelKey, setWheelKey] = useState(0);
+  // Undo stack: each entry is { assignedGages, currentLoserIndex, extraSpins, consumedGage? }
+  const [undoStack, setUndoStack] = useState([]);
 
   const losingTeam = state.losingTeam !== null ? state.currentGameTeams[state.losingTeam] : [];
   const categories = state.gageCategories || ['Films', 'Spectacles', 'Exposés', 'Divers'];
@@ -35,7 +37,8 @@ export default function Malchance() {
   const currentPlayer = losingTeam[currentLoserIndex];
   const currentPlayerGages = currentPlayer ? (state.playerGages[currentPlayer] || []) : [];
   const currentPlayerGageTexts = currentPlayerGages.map((g) => g.text);
-  // Always add "Rien" and "x2" to the wheel, sauf pendant un x2 (que des vrais gages)
+
+  // x2 mode: NO "Rien" and NO "x2" on the wheel — only real gages
   const wheelItems = extraSpins > 0
     ? [...currentPlayerGageTexts]
     : [...currentPlayerGageTexts, SPECIAL_RIEN, SPECIAL_X2];
@@ -100,29 +103,28 @@ export default function Malchance() {
   function handleGageResult(gageText) {
     const player = losingTeam[currentLoserIndex];
 
+    // Save undo state before any changes
+    const undoEntry = {
+      assignedGages: [...assignedGages],
+      currentLoserIndex,
+      extraSpins,
+      consumedGage: null,
+    };
+
     if (gageText === SPECIAL_RIEN) {
       // Fiesta! No gage assigned
       setTimeout(() => playFiestaSound(), 100);
       const newAssigned = [...assignedGages, { player, gage: '🎉 Rien !' }];
+      setUndoStack([...undoStack, { ...undoEntry }]);
       setAssignedGages(newAssigned);
-
-      if (extraSpins > 0) {
-        // Still has extra spins from x2
-        setExtraSpins(extraSpins - 1);
-        setWheelKey((k) => k + 1);
-        if (extraSpins - 1 === 0) {
-          // No more extra spins, but this "Rien" counts as one of the x2 spins
-          // Don't move to next player yet if there's still 1 more spin
-        }
-      } else {
-        moveToNextPlayer(newAssigned);
-      }
+      moveToNextPlayer(newAssigned);
       return;
     }
 
     if (gageText === SPECIAL_X2) {
-      // x2: must spin 2 more times!
-      setExtraSpins(extraSpins + 2);
+      // x2: 2 tirages obligatoires avec uniquement des vrais gages
+      setUndoStack([...undoStack, { ...undoEntry }]);
+      setExtraSpins(2);
       setWheelKey((k) => k + 1);
       return;
     }
@@ -133,17 +135,39 @@ export default function Malchance() {
 
     // Consume this gage from the player's personal list
     dispatch({ type: 'CONSUME_PLAYER_GAGE', payload: { player, gageText } });
+    setUndoStack([...undoStack, { ...undoEntry, consumedGage: { player, gageText } }]);
 
     if (extraSpins > 0) {
-      setExtraSpins(extraSpins - 1);
-      setWheelKey((k) => k + 1);
-      if (extraSpins - 1 === 0) {
-        // Last extra spin done, move to next
-        // Need timeout for state to settle
+      const remaining = extraSpins - 1;
+      setExtraSpins(remaining);
+      if (remaining > 0) {
+        setWheelKey((k) => k + 1);
+      } else {
+        // x2 terminé, on passe au joueur suivant
+        moveToNextPlayer(newAssigned);
       }
     } else {
       moveToNextPlayer(newAssigned);
     }
+  }
+
+  function handleUndo() {
+    if (undoStack.length === 0) return;
+    const last = undoStack[undoStack.length - 1];
+
+    // Restore consumed gage if any
+    if (last.consumedGage) {
+      const { player, gageText } = last.consumedGage;
+      const gage = state.gages.find((g) => g.text === gageText) || { text: gageText, category: 'Divers' };
+      dispatch({ type: 'ADD_PLAYER_GAGE', payload: { player, gage } });
+    }
+
+    setAssignedGages(last.assignedGages);
+    setCurrentLoserIndex(last.currentLoserIndex);
+    setExtraSpins(last.extraSpins);
+    setUndoStack(undoStack.slice(0, -1));
+    setWheelKey((k) => k + 1);
+    setAllDone(false);
   }
 
   // Player gage management view
@@ -153,14 +177,15 @@ export default function Malchance() {
     [managedPlayerGages, filterCategory]
   );
 
-  // Determine spin status text
-  const spinStatusText = extraSpins > 0
-    ? `💀 x2 actif ! Encore ${extraSpins} tour${extraSpins > 1 ? 's' : ''} !`
+  // x2 status display
+  const x2StatusText = extraSpins > 0
+    ? `💀 x2 ACTIF — ${extraSpins} gage${extraSpins > 1 ? 's' : ''} obligatoire${extraSpins > 1 ? 's' : ''} (pas de Rien, pas de x2)`
     : null;
 
   return (
     <div className="malchance-page">
       <h1>😈 Roue de la Malchance</h1>
+      <Link to="/scores" className="btn-back">← Scores</Link>
 
       <div className="manage-buttons">
         <button
@@ -348,14 +373,17 @@ export default function Malchance() {
             <div className="loser-badges">
               {losingTeam.map((player, i) => {
                 const playerGageCount = (state.playerGages[player] || []).length;
+                const isDone = i < currentLoserIndex;
+                const isCurrent = i === currentLoserIndex;
                 return (
                   <span
                     key={player}
-                    className={`loser-badge-mal ${i === currentLoserIndex ? 'current' : ''} ${i < currentLoserIndex ? 'done' : ''}`}
+                    className={`loser-badge-mal ${isCurrent ? 'current' : ''} ${isDone ? 'done' : ''}`}
                   >
                     {player}
                     <span className="loser-gage-count">{playerGageCount} gage{playerGageCount !== 1 ? 's' : ''}</span>
-                    {assignedGages.find((a) => a.player === player) && ' ✓'}
+                    {isDone && <span className="loser-done-tag">Fait</span>}
+                    {isCurrent && <span className="loser-current-tag">En cours</span>}
                   </span>
                 );
               })}
@@ -364,8 +392,8 @@ export default function Malchance() {
 
           <div className="current-spinner">
             <h3>🎰 C'est au tour de : <strong>{currentPlayer}</strong></h3>
-            {spinStatusText && (
-              <div className="x2-banner">{spinStatusText}</div>
+            {x2StatusText && (
+              <div className="x2-banner">{x2StatusText}</div>
             )}
             {wheelItems.length > 0 ? (
               <Wheel
@@ -382,6 +410,12 @@ export default function Malchance() {
               </div>
             )}
           </div>
+
+          {undoStack.length > 0 && (
+            <button className="btn btn-undo" onClick={handleUndo}>
+              ↩ Annuler le dernier tirage
+            </button>
+          )}
 
           {assignedGages.length > 0 && (
             <div className="assigned-list">
@@ -408,7 +442,14 @@ export default function Malchance() {
             ))}
           </div>
           <p className="good-luck">Bon courage les nullards ! 💀</p>
-          <Link to="/historique" className="btn btn-next">📜 Voir l'historique</Link>
+          <div className="malchance-final-actions">
+            {undoStack.length > 0 && (
+              <button className="btn btn-undo" onClick={handleUndo}>
+                ↩ Annuler le dernier tirage
+              </button>
+            )}
+            <Link to="/historique" className="btn btn-next">📜 Voir l'historique</Link>
+          </div>
         </div>
       )}
     </div>

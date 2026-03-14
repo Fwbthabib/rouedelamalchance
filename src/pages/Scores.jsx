@@ -59,8 +59,9 @@ export default function Scores() {
   return (
     <div className="scores-page">
       <h1>📊 Scores de la Partie</h1>
+      <Link to="/tirage" className="btn-back">← Tirage</Link>
       <p className="page-desc">
-        Entre les scores individuels — au golf, le plus de coups = les perdants !
+        Récap des scores par équipe — le plus de coups = les perdants !
       </p>
 
       {state.immunePlayer && (
@@ -76,7 +77,11 @@ export default function Scores() {
             className={`score-team-card ${allScoresFilled && teamIndex === losingTeamIndex ? 'losing' : ''} ${allScoresFilled && hasTie && tiedTeamIndexes.includes(teamIndex) ? 'tied' : ''}`}
           >
             <div className="score-team-header">
-              <h3>Équipe {getTeamLabel(teamIndex)}</h3>
+              <h3>
+                Équipe {getTeamLabel(teamIndex)}
+                {allScoresFilled && teamIndex === losingTeamIndex && <span className="team-status-badge losing-badge">Perdants</span>}
+                {allScoresFilled && hasTie && tiedTeamIndexes.includes(teamIndex) && <span className="team-status-badge tied-badge">Égalité</span>}
+              </h3>
               <span className="team-total">Total : {teamTotals[teamIndex]} coups</span>
             </div>
             <div className="score-inputs">
