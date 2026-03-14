@@ -35,8 +35,10 @@ export default function Malchance() {
   const currentPlayer = losingTeam[currentLoserIndex];
   const currentPlayerGages = currentPlayer ? (state.playerGages[currentPlayer] || []) : [];
   const currentPlayerGageTexts = currentPlayerGages.map((g) => g.text);
-  // Always add "Rien" and "x2" to the wheel
-  const wheelItems = [...currentPlayerGageTexts, SPECIAL_RIEN, SPECIAL_X2];
+  // Always add "Rien" and "x2" to the wheel (x2 only if not already in x2 mode)
+  const wheelItems = extraSpins > 0
+    ? [...currentPlayerGageTexts, SPECIAL_RIEN]
+    : [...currentPlayerGageTexts, SPECIAL_RIEN, SPECIAL_X2];
 
   function handleAddGage(e) {
     e.preventDefault();
