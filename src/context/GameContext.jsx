@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect } from 'react';
+import { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react';
 
 const GameContext = createContext();
 
@@ -173,13 +173,19 @@ function gameReducer(state, action) {
 export function GameProvider({ children }) {
   const saved = loadState();
   const [state, dispatch] = useReducer(gameReducer, saved || defaultState);
+  const timerRef = useRef(null);
 
+  // Debounce localStorage writes (300ms)
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (e) {
-      console.error('Failed to save state:', e);
-    }
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.error('Failed to save state:', e);
+      }
+    }, 300);
+    return () => clearTimeout(timerRef.current);
   }, [state]);
 
   return (

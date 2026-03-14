@@ -1,12 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useGame } from '../context/GameContext';
 import { Link } from 'react-router-dom';
 import Wheel from '../components/Wheel';
 import { playFiestaSound } from '../hooks/useSounds';
+import { SPECIAL_RIEN, SPECIAL_X2 } from '../utils/constants';
+import { getTeamLabel } from '../utils/gameHelpers';
 import './Malchance.css';
-
-const SPECIAL_RIEN = '🎉 Rien !';
-const SPECIAL_X2 = '💀 x2';
 
 export default function Malchance() {
   const { state, dispatch } = useGame();
@@ -27,9 +26,10 @@ export default function Malchance() {
   const losingTeam = state.losingTeam !== null ? state.currentGameTeams[state.losingTeam] : [];
   const categories = state.gageCategories || ['Films', 'Spectacles', 'Exposés', 'Divers'];
 
-  const filteredGages = filterCategory === 'Toutes'
-    ? state.gages
-    : state.gages.filter((g) => g.category === filterCategory);
+  const filteredGages = useMemo(
+    () => filterCategory === 'Toutes' ? state.gages : state.gages.filter((g) => g.category === filterCategory),
+    [state.gages, filterCategory]
+  );
 
   // Get current player's personal gages for the wheel + special items
   const currentPlayer = losingTeam[currentLoserIndex];
@@ -146,15 +146,12 @@ export default function Malchance() {
     }
   }
 
-  function getTeamLabel(index) {
-    return String.fromCharCode(65 + index);
-  }
-
   // Player gage management view
   const managedPlayerGages = managingPlayerGages ? (state.playerGages[managingPlayerGages] || []) : [];
-  const managedFilteredGages = filterCategory === 'Toutes'
-    ? managedPlayerGages
-    : managedPlayerGages.filter((g) => g.category === filterCategory);
+  const managedFilteredGages = useMemo(
+    () => filterCategory === 'Toutes' ? managedPlayerGages : managedPlayerGages.filter((g) => g.category === filterCategory),
+    [managedPlayerGages, filterCategory]
+  );
 
   // Determine spin status text
   const spinStatusText = extraSpins > 0

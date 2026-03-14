@@ -1,8 +1,18 @@
+import { useState, useMemo } from 'react';
 import { useGame } from '../context/GameContext';
 import './History.css';
 
+const ITEMS_PER_PAGE = 5;
+
 export default function History() {
   const { state } = useGame();
+  const [page, setPage] = useState(0);
+
+  const totalPages = Math.max(1, Math.ceil(state.history.length / ITEMS_PER_PAGE));
+  const paginatedHistory = useMemo(
+    () => state.history.slice(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE),
+    [state.history, page]
+  );
 
   function formatDate(isoString) {
     return new Date(isoString).toLocaleDateString('fr-FR', {
@@ -34,41 +44,68 @@ export default function History() {
           <p>Aucune partie enregistrée pour l'instant. Jouez d'abord !</p>
         </div>
       ) : (
-        <div className="history-list">
-          {state.history.map((entry, index) => (
-            <div key={index} className="history-card">
-              <div className="history-header">
-                <span className="history-date">{formatDate(entry.date)}</span>
-                <span className="history-badge">Partie #{state.history.length - index}</span>
-              </div>
-
-              <div className="history-teams">
-                {entry.teams.map((team) => (
-                  <div key={team.name} className="history-team">
-                    <span className="history-team-name">Équipe {team.name}</span>
-                    <span className="history-team-players">{team.players.join(', ')}</span>
-                    <span className="history-team-score">{team.score} coups</span>
+        <>
+          <div className="history-list">
+            {paginatedHistory.map((entry, index) => {
+              const globalIndex = page * ITEMS_PER_PAGE + index;
+              return (
+                <div key={globalIndex} className="history-card">
+                  <div className="history-header">
+                    <span className="history-date">{formatDate(entry.date)}</span>
+                    <span className="history-badge">Partie #{state.history.length - globalIndex}</span>
                   </div>
-                ))}
-              </div>
 
-              {entry.immunePlayer && (
-                <div className="history-immune">⭐ Immunisé : {entry.immunePlayer}</div>
-              )}
-
-              <div className="history-gages">
-                <h4>💀 Gages distribués :</h4>
-                {entry.gages.map(({ player, gage }, i) => (
-                  <div key={i} className="history-gage">
-                    <span className="history-gage-player">{player}</span>
-                    <span className="history-gage-arrow">→</span>
-                    <span className="history-gage-text">{gage}</span>
+                  <div className="history-teams">
+                    {entry.teams.map((team) => (
+                      <div key={team.name} className="history-team">
+                        <span className="history-team-name">Équipe {team.name}</span>
+                        <span className="history-team-players">{team.players.join(', ')}</span>
+                        <span className="history-team-score">{team.score} coups</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+
+                  {entry.immunePlayer && (
+                    <div className="history-immune">⭐ Immunisé : {entry.immunePlayer}</div>
+                  )}
+
+                  <div className="history-gages">
+                    <h4>💀 Gages distribués :</h4>
+                    {entry.gages.map(({ player, gage }, i) => (
+                      <div key={i} className="history-gage">
+                        <span className="history-gage-player">{player}</span>
+                        <span className="history-gage-arrow">→</span>
+                        <span className="history-gage-text">{gage}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="history-pagination">
+              <button
+                className="btn btn-pagination"
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+              >
+                ← Précédent
+              </button>
+              <span className="pagination-info">
+                {page + 1} / {totalPages}
+              </span>
+              <button
+                className="btn btn-pagination"
+                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+              >
+                Suivant →
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   );

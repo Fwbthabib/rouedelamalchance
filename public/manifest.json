@@ -1,0 +1,17 @@
+{
+  "name": "Roue de la Malchance",
+  "short_name": "Malchance",
+  "description": "L'app ultime pour vos dimanches Golf It!",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#4ECDC4",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
