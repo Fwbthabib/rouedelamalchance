@@ -3,6 +3,13 @@
   margin: 0 auto;
 }
 
+.manage-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
 .btn-manage-gages {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -13,11 +20,41 @@
   font-family: inherit;
   font-weight: 600;
   transition: all 0.3s ease;
-  margin-bottom: 1rem;
+  align-self: flex-start;
 }
 
 .btn-manage-gages:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+.player-gage-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.btn-player-gages {
+  background: rgba(102, 126, 234, 0.15);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 0.4rem 0.9rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.btn-player-gages:hover {
+  background: rgba(102, 126, 234, 0.25);
+}
+
+.btn-player-gages.active {
+  background: rgba(102, 126, 234, 0.3);
+  border-color: #667eea;
+  color: white;
+  box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
 }
 
 .gages-manager {
@@ -27,6 +64,49 @@
   padding: 1.2rem;
   margin-bottom: 1.5rem;
   animation: slideDown 0.3s ease;
+}
+
+.player-gages-manager {
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.manager-title {
+  color: #4ECDC4;
+  margin-bottom: 0.3rem;
+}
+
+.manager-desc {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.player-gage-actions {
+  margin-bottom: 0.8rem;
+}
+
+.btn-add-all-gages {
+  background: rgba(78, 205, 196, 0.15);
+  border: 1px solid rgba(78, 205, 196, 0.3);
+  color: #4ECDC4;
+  padding: 0.4rem 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.btn-add-all-gages:hover {
+  background: rgba(78, 205, 196, 0.25);
+}
+
+.empty-gages {
+  color: rgba(255, 255, 255, 0.4);
+  font-style: italic;
+  text-align: center;
+  padding: 1rem;
 }
 
 @keyframes slideDown {
@@ -138,6 +218,16 @@
   background: rgba(255, 255, 255, 0.1);
   border: 2px solid rgba(255, 255, 255, 0.2);
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.loser-gage-count {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 500;
 }
 
 .loser-badge-mal.current {
@@ -145,6 +235,10 @@
   border-color: transparent;
   color: white;
   box-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
+}
+
+.loser-badge-mal.current .loser-gage-count {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .loser-badge-mal.done {
@@ -156,6 +250,26 @@
 .current-spinner { text-align: center; }
 .current-spinner h3 { margin-bottom: 1rem; color: rgba(255, 255, 255, 0.9); }
 .current-spinner strong { color: #FF6B6B; }
+
+.no-gages-warning {
+  background: rgba(255, 234, 167, 0.1);
+  border: 1px solid rgba(255, 234, 167, 0.3);
+  border-radius: 15px;
+  padding: 1.5rem;
+  color: #FFEAA7;
+  text-align: center;
+}
+
+.no-gages-warning p:first-child {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.no-gages-warning p:last-child {
+  font-size: 0.9rem;
+  color: rgba(255, 234, 167, 0.7);
+}
 
 .assigned-list { margin-top: 1.5rem; }
 .assigned-list h3 { margin-bottom: 0.8rem; color: rgba(255, 255, 255, 0.8); }

@@ -13,6 +13,14 @@ function loadState() {
       if (parsed.gages && parsed.gages.length > 0 && typeof parsed.gages[0] === 'string') {
         parsed.gages = parsed.gages.map((g) => ({ text: g, category: 'Divers' }));
       }
+      // Migration: ajouter regularPlayers si absent
+      if (!parsed.regularPlayers) {
+        parsed.regularPlayers = [...(parsed.players || [])];
+      }
+      // Migration: ajouter playerGages si absent
+      if (!parsed.playerGages) {
+        parsed.playerGages = {};
+      }
       return parsed;
     }
   } catch (e) {
@@ -23,6 +31,7 @@ function loadState() {
 
 const defaultState = {
   players: [],
+  regularPlayers: [],
   gages: [
     { text: 'Regarder un film catastrophique (note < 3/10)', category: 'Films' },
     { text: 'Regarder un film de Noël en plein été', category: 'Films' },
@@ -34,6 +43,7 @@ const defaultState = {
     { text: 'Regarder un documentaire sur les escargots', category: 'Films' },
   ],
   gageCategories: ['Films', 'Spectacles', 'Exposés', 'Divers'],
+  playerGages: {},
   teamSize: 2,
   drawMode: 'fill',
   scores: {},
@@ -57,6 +67,58 @@ function gameReducer(state, action) {
         ...state,
         players: state.players.filter((p) => p !== action.payload),
         scores: newScores,
+      };
+    }
+    case 'ADD_REGULAR_PLAYER': {
+      const name = action.payload;
+      if (state.regularPlayers.some((p) => p.toLowerCase() === name.toLowerCase())) return state;
+      const newPlayerGages = { ...state.playerGages };
+      // Initialize with all global gages if new player
+      if (!newPlayerGages[name]) {
+        newPlayerGages[name] = [...state.gages];
+      }
+      return {
+        ...state,
+        regularPlayers: [...state.regularPlayers, name],
+        playerGages: newPlayerGages,
+      };
+    }
+    case 'REMOVE_REGULAR_PLAYER': {
+      const newPlayerGages = { ...state.playerGages };
+      delete newPlayerGages[action.payload];
+      return {
+        ...state,
+        regularPlayers: state.regularPlayers.filter((p) => p !== action.payload),
+        players: state.players.filter((p) => p !== action.payload),
+        playerGages: newPlayerGages,
+      };
+    }
+    case 'ADD_PLAYER_GAGE': {
+      // payload: { player, gage: { text, category } }
+      const { player, gage } = action.payload;
+      const currentGages = state.playerGages[player] || [];
+      if (currentGages.some((g) => g.text === gage.text)) return state;
+      return {
+        ...state,
+        playerGages: { ...state.playerGages, [player]: [...currentGages, gage] },
+      };
+    }
+    case 'REMOVE_PLAYER_GAGE': {
+      // payload: { player, gageText }
+      const { player, gageText } = action.payload;
+      const current = state.playerGages[player] || [];
+      return {
+        ...state,
+        playerGages: { ...state.playerGages, [player]: current.filter((g) => g.text !== gageText) },
+      };
+    }
+    case 'CONSUME_PLAYER_GAGE': {
+      // payload: { player, gageText } — remove gage after spinning
+      const { player, gageText } = action.payload;
+      const curr = state.playerGages[player] || [];
+      return {
+        ...state,
+        playerGages: { ...state.playerGages, [player]: curr.filter((g) => g.text !== gageText) },
       };
     }
     case 'ADD_GAGE':

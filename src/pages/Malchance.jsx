@@ -13,7 +13,10 @@ export default function Malchance() {
   const [assignedGages, setAssignedGages] = useState([]);
   const [allDone, setAllDone] = useState(false);
   const [managingGages, setManagingGages] = useState(false);
+  const [managingPlayerGages, setManagingPlayerGages] = useState(null);
   const [filterCategory, setFilterCategory] = useState('Toutes');
+  const [newPlayerGage, setNewPlayerGage] = useState('');
+  const [newPlayerGageCategory, setNewPlayerGageCategory] = useState('');
 
   const losingTeam = state.losingTeam !== null ? state.currentGameTeams[state.losingTeam] : [];
   const categories = state.gageCategories || ['Films', 'Spectacles', 'Exposés', 'Divers'];
@@ -22,7 +25,10 @@ export default function Malchance() {
     ? state.gages
     : state.gages.filter((g) => g.category === filterCategory);
 
-  const gageTexts = state.gages.map((g) => g.text);
+  // Get current player's personal gages for the wheel
+  const currentPlayer = losingTeam[currentLoserIndex];
+  const currentPlayerGages = currentPlayer ? (state.playerGages[currentPlayer] || []) : [];
+  const currentPlayerGageTexts = currentPlayerGages.map((g) => g.text);
 
   function handleAddGage(e) {
     e.preventDefault();
@@ -43,10 +49,29 @@ export default function Malchance() {
     }
   }
 
+  function handleAddPlayerGage(e, playerName) {
+    e.preventDefault();
+    const text = newPlayerGage.trim();
+    const category = newPlayerGageCategory || 'Divers';
+    if (text) {
+      dispatch({ type: 'ADD_PLAYER_GAGE', payload: { player: playerName, gage: { text, category } } });
+      setNewPlayerGage('');
+    }
+  }
+
+  function handleAddAllGlobalGages(playerName) {
+    state.gages.forEach((gage) => {
+      dispatch({ type: 'ADD_PLAYER_GAGE', payload: { player: playerName, gage } });
+    });
+  }
+
   function handleGageResult(gageText) {
     const player = losingTeam[currentLoserIndex];
     const newAssigned = [...assignedGages, { player, gage: gageText }];
     setAssignedGages(newAssigned);
+
+    // Consume this gage from the player's personal list
+    dispatch({ type: 'CONSUME_PLAYER_GAGE', payload: { player, gageText } });
 
     if (currentLoserIndex + 1 >= losingTeam.length) {
       setAllDone(true);
@@ -72,19 +97,49 @@ export default function Malchance() {
     return String.fromCharCode(65 + index);
   }
 
+  // Player gage management view
+  const managedPlayerGages = managingPlayerGages ? (state.playerGages[managingPlayerGages] || []) : [];
+  const managedFilteredGages = filterCategory === 'Toutes'
+    ? managedPlayerGages
+    : managedPlayerGages.filter((g) => g.category === filterCategory);
+
   return (
     <div className="malchance-page">
       <h1>😈 Roue de la Malchance</h1>
 
-      <button
-        className="btn btn-manage-gages"
-        onClick={() => setManagingGages(!managingGages)}
-      >
-        {managingGages ? '✕ Fermer' : '⚙️ Gérer les gages'}
-      </button>
+      <div className="manage-buttons">
+        <button
+          className="btn btn-manage-gages"
+          onClick={() => { setManagingGages(!managingGages); setManagingPlayerGages(null); }}
+        >
+          {managingGages ? '✕ Fermer' : '⚙️ Gages globaux'}
+        </button>
+        {state.regularPlayers.length > 0 && (
+          <div className="player-gage-buttons">
+            {state.regularPlayers.map((p) => {
+              const count = (state.playerGages[p] || []).length;
+              return (
+                <button
+                  key={p}
+                  className={`btn btn-player-gages ${managingPlayerGages === p ? 'active' : ''}`}
+                  onClick={() => {
+                    setManagingPlayerGages(managingPlayerGages === p ? null : p);
+                    setManagingGages(false);
+                    setFilterCategory('Toutes');
+                  }}
+                >
+                  {p} ({count})
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {managingGages && (
         <div className="gages-manager">
+          <h3 className="manager-title">Gages globaux (bibliothèque)</h3>
+          <p className="manager-desc">Ces gages servent de base. Ajoute-les ensuite aux joueurs.</p>
           <form onSubmit={handleAddGage} className="gage-form">
             <input
               type="text"
@@ -154,42 +209,119 @@ export default function Malchance() {
         </div>
       )}
 
+      {managingPlayerGages && (
+        <div className="gages-manager player-gages-manager">
+          <h3 className="manager-title">Roue de {managingPlayerGages}</h3>
+          <p className="manager-desc">{managedPlayerGages.length} gage{managedPlayerGages.length !== 1 ? 's' : ''} restant{managedPlayerGages.length !== 1 ? 's' : ''}</p>
+
+          <div className="player-gage-actions">
+            <button className="btn btn-add-all-gages" onClick={() => handleAddAllGlobalGages(managingPlayerGages)}>
+              + Ajouter tous les gages globaux
+            </button>
+          </div>
+
+          <form onSubmit={(e) => handleAddPlayerGage(e, managingPlayerGages)} className="gage-form">
+            <input
+              type="text"
+              value={newPlayerGage}
+              onChange={(e) => setNewPlayerGage(e.target.value)}
+              placeholder="Ajouter un gage..."
+              className="input"
+            />
+            <select
+              className="input gage-category-select"
+              value={newPlayerGageCategory}
+              onChange={(e) => setNewPlayerGageCategory(e.target.value)}
+            >
+              <option value="">Catégorie...</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+            <button type="submit" className="btn btn-add" disabled={!newPlayerGage.trim()}>
+              +
+            </button>
+          </form>
+
+          <div className="category-filters">
+            <button
+              className={`category-chip ${filterCategory === 'Toutes' ? 'active' : ''}`}
+              onClick={() => setFilterCategory('Toutes')}
+            >
+              Toutes ({managedPlayerGages.length})
+            </button>
+            {categories.map((cat) => {
+              const count = managedPlayerGages.filter((g) => g.category === cat).length;
+              if (count === 0) return null;
+              return (
+                <button
+                  key={cat}
+                  className={`category-chip ${filterCategory === cat ? 'active' : ''}`}
+                  onClick={() => setFilterCategory(cat)}
+                >
+                  {cat} ({count})
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="gages-list">
+            {managedFilteredGages.map((gage) => (
+              <div key={gage.text} className="gage-item">
+                <span className="gage-category-tag">{gage.category}</span>
+                <span className="gage-text">{gage.text}</span>
+                <button className="btn-remove" onClick={() => dispatch({ type: 'REMOVE_PLAYER_GAGE', payload: { player: managingPlayerGages, gageText: gage.text } })}>✕</button>
+              </div>
+            ))}
+            {managedFilteredGages.length === 0 && (
+              <p className="empty-gages">Aucun gage. Ajoute-en ou clique "Ajouter tous les gages globaux".</p>
+            )}
+          </div>
+        </div>
+      )}
+
       {state.losingTeam === null ? (
         <div className="empty-state">
           <span className="empty-icon">📊</span>
           <p>Il faut d'abord renseigner les scores et désigner les perdants !</p>
-          <Link to="/scores" className="btn btn-next">📊 Aller aux scores</Link>
-        </div>
-      ) : state.gages.length === 0 ? (
-        <div className="empty-state">
-          <span className="empty-icon">📝</span>
-          <p>Ajoute des gages dans la roue d'abord !</p>
+          <Link to="/tirage" className="btn btn-next">🎡 Aller au tirage</Link>
         </div>
       ) : !allDone ? (
         <div className="malchance-active">
           <div className="losing-team-banner">
             <h2>💀 Équipe {getTeamLabel(state.losingTeam)} — Les Perdants</h2>
             <div className="loser-badges">
-              {losingTeam.map((player, i) => (
-                <span
-                  key={player}
-                  className={`loser-badge-mal ${i === currentLoserIndex ? 'current' : ''} ${i < currentLoserIndex ? 'done' : ''}`}
-                >
-                  {player}
-                  {assignedGages.find((a) => a.player === player) && ' ✓'}
-                </span>
-              ))}
+              {losingTeam.map((player, i) => {
+                const playerGageCount = (state.playerGages[player] || []).length;
+                return (
+                  <span
+                    key={player}
+                    className={`loser-badge-mal ${i === currentLoserIndex ? 'current' : ''} ${i < currentLoserIndex ? 'done' : ''}`}
+                  >
+                    {player}
+                    <span className="loser-gage-count">{playerGageCount} gage{playerGageCount !== 1 ? 's' : ''}</span>
+                    {assignedGages.find((a) => a.player === player) && ' ✓'}
+                  </span>
+                );
+              })}
             </div>
           </div>
 
           <div className="current-spinner">
-            <h3>🎰 C'est au tour de : <strong>{losingTeam[currentLoserIndex]}</strong></h3>
-            <Wheel
-              items={gageTexts}
-              onResult={handleGageResult}
-              title={`Gage pour ${losingTeam[currentLoserIndex]}`}
-              type="gages"
-            />
+            <h3>🎰 C'est au tour de : <strong>{currentPlayer}</strong></h3>
+            {currentPlayerGageTexts.length > 0 ? (
+              <Wheel
+                items={currentPlayerGageTexts}
+                onResult={handleGageResult}
+                title={`Gage pour ${currentPlayer}`}
+                type="gages"
+              />
+            ) : (
+              <div className="no-gages-warning">
+                <p>⚠️ {currentPlayer} n'a plus de gages dans sa roue !</p>
+                <p>Ajoute des gages via le bouton "{currentPlayer}" en haut.</p>
+              </div>
+            )}
           </div>
 
           {assignedGages.length > 0 && (

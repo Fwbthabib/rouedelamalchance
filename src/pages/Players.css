@@ -8,10 +8,138 @@
   margin-bottom: 1.5rem;
 }
 
+.section-title {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Vignettes */
+.regular-players-section {
+  margin-bottom: 1.5rem;
+}
+
+.vignettes-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.vignette {
+  position: relative;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: 90px;
+}
+
+.vignette:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.vignette.active {
+  background: rgba(78, 205, 196, 0.15);
+  border-color: #4ECDC4;
+  box-shadow: 0 0 12px rgba(78, 205, 196, 0.2);
+}
+
+.vignette-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: white;
+}
+
+.vignette-gages {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+}
+
+.vignette.active .vignette-gages {
+  color: rgba(78, 205, 196, 0.7);
+}
+
+.vignette-check {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #4ECDC4;
+  color: #1a1a2e;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.regular-actions {
+  margin-top: 0.5rem;
+}
+
+.btn-add-regular {
+  background: none;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.5);
+  padding: 0.4rem 1rem;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-add-regular:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.add-regular-form {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.add-regular-form .input { flex: 1; }
+
+.btn-cancel-regular {
+  background: rgba(255, 107, 107, 0.2);
+  border: none;
+  color: #FF6B6B;
+  width: 36px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel-regular:hover {
+  background: rgba(255, 107, 107, 0.4);
+}
+
+/* Manual add */
+.manual-add-section {
+  margin-bottom: 1.5rem;
+}
+
 .player-form {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
 }
 
 .player-form .input {
