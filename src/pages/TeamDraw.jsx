@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useGame } from '../context/GameContext';
-import { Link } from 'react-router-dom';
 import Wheel from '../components/Wheel';
+import ScoresSummary from '../components/ScoresSummary';
+import { getTeamLabel, computeTeamTotals, findTieBreakInfo } from '../utils/gameHelpers';
 import './TeamDraw.css';
 
 export default function TeamDraw() {
@@ -23,16 +24,12 @@ export default function TeamDraw() {
     return Math.ceil(count / teamSize);
   }, [state.players.length, teamSize, immunePlayer, needsImmune]);
 
-  // Auto-assign remaining players when they exactly fill the next team (fill mode only)
-  // Only triggers after at least one player has been drawn (not on first render)
   useEffect(() => {
     if (!started || drawMode !== 'fill' || remainingPlayers.length === 0 || autoAssignedRef.current) return;
 
-    // Don't auto-assign if no player has been drawn yet
     const hasDrawnPlayers = teams.some((t) => t.length > 0);
     if (!hasDrawnPlayers) return;
 
-    // Find the target team (first non-full)
     const targetIdx = teams.findIndex((t) => t.length < teamSize);
     if (targetIdx === -1) return;
 
@@ -40,7 +37,6 @@ export default function TeamDraw() {
 
     if (remainingPlayers.length <= slotsInTarget) {
       autoAssignedRef.current = true;
-      // Auto-assign all remaining players
       const newTeams = teams.map((t) => [...t]);
       remainingPlayers.forEach((p) => {
         newTeams[targetIdx].push(p);
@@ -115,30 +111,16 @@ export default function TeamDraw() {
     });
   }
 
-  const teamTotals = useMemo(() => {
-    return teams.map((team) =>
-      team.reduce((sum, player) => {
-        const score = state.scores[player];
-        return sum + (typeof score === 'number' ? score : 0);
-      }, 0)
-    );
-  }, [teams, state.scores]);
+  const teamTotals = useMemo(() => computeTeamTotals(teams, state.scores), [teams, state.scores]);
 
   const allScoresFilled = teams.length > 0 && remainingPlayers.length === 0 && teams.every((team) =>
     team.length > 0 && team.every((player) => typeof state.scores[player] === 'number')
   );
 
-  const maxScore = allScoresFilled ? Math.max(...teamTotals) : 0;
-
-  const tiedTeamIndexes = allScoresFilled
-    ? teamTotals.reduce((acc, total, i) => {
-        if (total === maxScore) acc.push(i);
-        return acc;
-      }, [])
-    : [];
-
-  const hasTie = tiedTeamIndexes.length > 1;
-  const losingTeamIndex = !hasTie && tiedTeamIndexes.length === 1 ? tiedTeamIndexes[0] : -1;
+  const { tiedTeamIndexes, hasTie, losingTeamIndex } = useMemo(
+    () => findTieBreakInfo(teamTotals, allScoresFilled),
+    [teamTotals, allScoresFilled]
+  );
 
   function handleDesignateLosers(teamIndex) {
     dispatch({ type: 'SET_LOSING_TEAM', payload: teamIndex });
@@ -152,10 +134,6 @@ export default function TeamDraw() {
     const teamIndex = teamName.charCodeAt(teamName.length - 1) - 65;
     handleDesignateLosers(teamIndex);
     setTiebreakMode(false);
-  }
-
-  function getTeamLabel(index) {
-    return String.fromCharCode(65 + index);
   }
 
   function getTargetTeamLabel() {
@@ -305,53 +283,17 @@ export default function TeamDraw() {
               <p className="scores-instruction">Entre les scores de chaque joueur — au golf, le plus de coups = les perdants !</p>
 
               {allScoresFilled && (
-                <div className="scores-summary">
-                  <div className="summary-card">
-                    <h3>🏆 Résumé</h3>
-                    {teamTotals.map((total, i) => (
-                      <div key={i} className={`summary-row ${i === losingTeamIndex ? 'loser' : ''} ${hasTie && tiedTeamIndexes.includes(i) ? 'tied' : ''}`}>
-                        <span>Équipe {getTeamLabel(i)}</span>
-                        <span className="summary-score">{total} coups</span>
-                        {i === losingTeamIndex && <span className="loser-tag">💀 PERDANTS</span>}
-                        {hasTie && tiedTeamIndexes.includes(i) && <span className="tie-tag">⚔️ ÉGALITÉ</span>}
-                      </div>
-                    ))}
-                  </div>
-
-                  {hasTie && !tiebreakMode && state.losingTeam === null && (
-                    <div className="tie-section">
-                      <p className="tie-message">⚔️ Égalité entre {tiedTeamIndexes.map((i) => `Équipe ${getTeamLabel(i)}`).join(' et ')} !</p>
-                      <button className="btn btn-tiebreak" onClick={() => setTiebreakMode(true)}>
-                        🎡 Départager à la roue !
-                      </button>
-                    </div>
-                  )}
-
-                  {tiebreakMode && (
-                    <div className="tiebreak-wheel">
-                      <h3>⚔️ Roue de départage</h3>
-                      <p>L'équipe tirée sera désignée perdante !</p>
-                      <Wheel
-                        items={tiedTeamIndexes.map((i) => `Équipe ${getTeamLabel(i)}`)}
-                        onResult={handleTiebreakResult}
-                        title="Qui sont les perdants ?"
-                      />
-                    </div>
-                  )}
-
-                  {!hasTie && state.losingTeam === null && (
-                    <button className="btn btn-designate" onClick={() => handleDesignateLosers(losingTeamIndex)}>
-                      😈 Désigner les perdants → Roue de la Malchance
-                    </button>
-                  )}
-
-                  {state.losingTeam !== null && (
-                    <div className="already-designated">
-                      💀 Équipe {getTeamLabel(state.losingTeam)} désignée perdante !
-                      <Link to="/malchance" className="btn btn-next">😈 Aller à la Roue de la Malchance</Link>
-                    </div>
-                  )}
-                </div>
+                <ScoresSummary
+                  teamTotals={teamTotals}
+                  tiedTeamIndexes={tiedTeamIndexes}
+                  hasTie={hasTie}
+                  losingTeamIndex={losingTeamIndex}
+                  tiebreakMode={tiebreakMode}
+                  setTiebreakMode={setTiebreakMode}
+                  losingTeam={state.losingTeam}
+                  onDesignateLosers={handleDesignateLosers}
+                  onTiebreakResult={handleTiebreakResult}
+                />
               )}
 
               <div className="draw-complete-actions">
