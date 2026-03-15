@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { GameProvider } from './context/GameContext';
+import { ToastProvider } from './context/ToastContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -20,6 +21,7 @@ function App() {
   return (
     <ErrorBoundary>
       <GameProvider>
+        <ToastProvider>
         <BrowserRouter>
           <div className="app">
             <Navbar />
@@ -38,6 +40,7 @@ function App() {
             </main>
           </div>
         </BrowserRouter>
+        </ToastProvider>
       </GameProvider>
     </ErrorBoundary>
   );

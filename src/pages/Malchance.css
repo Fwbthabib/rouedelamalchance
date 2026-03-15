@@ -109,6 +109,35 @@
   padding: 1rem;
 }
 
+.gage-confirm-delete {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.btn-confirm-del {
+  background: rgba(255, 107, 107, 0.3);
+  border: 1px solid rgba(255, 107, 107, 0.5);
+  color: #FF6B6B;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.btn-cancel-del {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }

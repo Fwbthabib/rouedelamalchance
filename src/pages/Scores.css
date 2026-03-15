@@ -191,6 +191,17 @@
   align-items: center;
 }
 
+.no-gages-alert {
+  background: rgba(255, 234, 167, 0.15);
+  border: 1px solid rgba(255, 234, 167, 0.4);
+  border-radius: 10px;
+  padding: 0.6rem 1rem;
+  color: #FFEAA7;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: left;
+}
+
 .btn-next {
   display: inline-block;
   background: linear-gradient(135deg, #4ECDC4, #45B7D1);

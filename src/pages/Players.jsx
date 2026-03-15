@@ -130,7 +130,7 @@ export default function Players() {
                   value={state.scores[player] ?? ''}
                   onChange={(e) => {
                     const val = e.target.value;
-                    const score = val === '' ? '' : parseInt(val, 10);
+                    const score = val === '' ? '' : Math.max(0, parseInt(val, 10));
                     dispatch({
                       type: 'SET_SCORE',
                       payload: { player, score: isNaN(score) ? '' : score },

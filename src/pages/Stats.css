@@ -147,3 +147,10 @@
   content: '→ ';
   color: rgba(255, 255, 255, 0.5);
 }
+
+.stats-filters {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.2rem;
+}

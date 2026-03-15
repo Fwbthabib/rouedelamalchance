@@ -43,7 +43,9 @@ export default function History() {
       {state.history.length === 0 ? (
         <div className="empty-state">
           <span className="empty-icon">📜</span>
-          <p>Aucune partie enregistrée pour l'instant. Jouez d'abord !</p>
+          <p>Aucune partie enregistrée pour l'instant.</p>
+          <p className="empty-state-hint">Les parties sont enregistrées automatiquement après la Roue de la Malchance.</p>
+          <Link to="/" className="btn btn-next" style={{ marginTop: '1rem' }}>⛳ Commencer une partie</Link>
         </div>
       ) : (
         <>

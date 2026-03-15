@@ -12,7 +12,15 @@ export default function ScoresSummary({
   losingTeam,
   onDesignateLosers,
   onTiebreakResult,
+  teams,
+  playerGages,
 }) {
+  // Check if any losing team player has 0 gages
+  const losingTeamPlayers = losingTeam !== null && teams ? teams[losingTeam] : [];
+  const playersWithNoGages = losingTeamPlayers.filter(
+    (p) => playerGages && (!playerGages[p] || playerGages[p].length === 0)
+  );
+
   return (
     <div className="scores-summary">
       <div className="summary-card">
@@ -57,6 +65,11 @@ export default function ScoresSummary({
       {losingTeam !== null && (
         <div className="already-designated">
           💀 Équipe {getTeamLabel(losingTeam)} désignée perdante !
+          {playersWithNoGages.length > 0 && (
+            <div className="no-gages-alert">
+              ⚠️ {playersWithNoGages.join(', ')} n'{playersWithNoGages.length > 1 ? 'ont' : 'a'} aucun gage dans sa roue ! Ajoute-en sur la page Malchance avant de tourner.
+            </div>
+          )}
           <Link to="/malchance" className="btn btn-next">😈 Aller à la Roue de la Malchance</Link>
         </div>
       )}

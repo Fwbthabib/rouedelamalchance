@@ -206,6 +206,39 @@
   font-weight: bold;
 }
 
+.member-swappable {
+  cursor: pointer;
+  border: none;
+  font: inherit;
+  transition: all 0.2s ease;
+}
+
+.member-swappable:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(78, 205, 196, 0.3);
+}
+
+.swap-selected {
+  background: rgba(78, 205, 196, 0.3) !important;
+  border: 2px solid #4ECDC4 !important;
+  box-shadow: 0 0 15px rgba(78, 205, 196, 0.4);
+}
+
+.swap-target {
+  border: 2px dashed rgba(78, 205, 196, 0.5) !important;
+}
+
+.swap-target:hover {
+  background: rgba(78, 205, 196, 0.2) !important;
+}
+
+.swap-hint {
+  font-size: 0.85rem;
+  color: rgba(78, 205, 196, 0.7);
+  font-style: italic;
+  margin-bottom: 0.5rem;
+}
+
 .draw-info { text-align: center; margin-bottom: 1rem; }
 .draw-info p { margin: 0.2rem 0; }
 .remaining-count { font-size: 0.85rem; color: rgba(255, 255, 255, 0.5); }

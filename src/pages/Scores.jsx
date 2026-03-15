@@ -11,7 +11,7 @@ export default function Scores() {
   const [tiebreakMode, setTiebreakMode] = useState(false);
 
   function handleScoreChange(player, value) {
-    const score = value === '' ? '' : parseInt(value, 10);
+    const score = value === '' ? '' : Math.max(0, parseInt(value, 10));
     dispatch({
       type: 'SET_SCORE',
       payload: { player, score: isNaN(score) ? '' : score },
@@ -114,6 +114,8 @@ export default function Scores() {
           losingTeam={state.losingTeam}
           onDesignateLosers={handleDesignateLosers}
           onTiebreakResult={handleTiebreakResult}
+          teams={teams}
+          playerGages={state.playerGages}
         />
       )}
     </div>

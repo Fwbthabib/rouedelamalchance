@@ -15,11 +15,30 @@ export default function Stats() {
   const { state } = useGame();
   const [sortKey, setSortKey] = useState('gamesPlayed');
   const [sortDesc, setSortDesc] = useState(true);
+  const [filterTeamSize, setFilterTeamSize] = useState(0); // 0 = all
+
+  // Get unique team sizes from history
+  const availableTeamSizes = useMemo(() => {
+    const sizes = new Set();
+    state.history.forEach((entry) => {
+      if (entry.teams.length > 0) {
+        sizes.add(entry.teams[0].players.length);
+      }
+    });
+    return [...sizes].sort();
+  }, [state.history]);
+
+  const filteredHistory = useMemo(() => {
+    if (filterTeamSize === 0) return state.history;
+    return state.history.filter((entry) =>
+      entry.teams.length > 0 && entry.teams[0].players.length === filterTeamSize
+    );
+  }, [state.history, filterTeamSize]);
 
   const playerStats = useMemo(() => {
     const stats = {};
 
-    state.history.forEach((entry) => {
+    filteredHistory.forEach((entry) => {
       const allPlayers = entry.teams.flatMap((t) => t.players);
       if (entry.immunePlayer) allPlayers.push(entry.immunePlayer);
 
@@ -57,7 +76,7 @@ export default function Stats() {
     });
 
     return Object.values(stats);
-  }, [state.history]);
+  }, [filteredHistory]);
 
   const sortedStats = useMemo(() => {
     const sorted = [...playerStats].sort((a, b) => {
@@ -103,6 +122,8 @@ export default function Stats() {
         <div className="empty-state">
           <span className="empty-icon">📊</span>
           <p>Pas encore de stats — jouez d'abord quelques parties !</p>
+          <p className="empty-state-hint">Les statistiques se remplissent au fil des parties enregistrées.</p>
+          <Link to="/" className="btn btn-next" style={{ marginTop: '1rem' }}>⛳ Commencer une partie</Link>
         </div>
       </div>
     );
@@ -113,10 +134,30 @@ export default function Stats() {
       <h1>📈 Statistiques</h1>
       <Link to="/" className="btn-back">← Accueil</Link>
 
+      {availableTeamSizes.length > 1 && (
+        <div className="stats-filters">
+          <button
+            className={`category-chip ${filterTeamSize === 0 ? 'active' : ''}`}
+            onClick={() => setFilterTeamSize(0)}
+          >
+            Toutes
+          </button>
+          {availableTeamSizes.map((size) => (
+            <button
+              key={size}
+              className={`category-chip ${filterTeamSize === size ? 'active' : ''}`}
+              onClick={() => setFilterTeamSize(size)}
+            >
+              {size}v{size}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="stats-overview">
         <div className="stat-card">
-          <span className="stat-value">{state.history.length}</span>
-          <span className="stat-label">Parties jouées</span>
+          <span className="stat-value">{filteredHistory.length}</span>
+          <span className="stat-label">Parties jouées{filterTeamSize > 0 ? ` (${filterTeamSize}v${filterTeamSize})` : ''}</span>
         </div>
         {topLoser && topLoser.timesLost > 0 && (
           <div className="stat-card loser">

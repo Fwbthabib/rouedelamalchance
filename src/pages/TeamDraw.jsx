@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useGame } from '../context/GameContext';
+import { useToast } from '../context/ToastContext';
 import { Link } from 'react-router-dom';
 import Wheel from '../components/Wheel';
 import { getTeamLabel } from '../utils/gameHelpers';
@@ -7,7 +8,9 @@ import './TeamDraw.css';
 
 export default function TeamDraw() {
   const { state, dispatch } = useGame();
+  const addToast = useToast();
   const [teamSize, setTeamSize] = useState(state.teamSize);
+  const [swapSource, setSwapSource] = useState(null); // { teamIndex, playerName }
   const [drawMode, setDrawMode] = useState(state.drawMode);
   const [teams, setTeams] = useState(state.currentGameTeams);
   const [remainingPlayers, setRemainingPlayers] = useState([]);
@@ -110,6 +113,23 @@ export default function TeamDraw() {
     return getTeamLabel(currentTeamIndex);
   }
 
+  function handleSwap(targetTeamIndex, targetPlayer) {
+    if (!swapSource) return;
+    if (swapSource.teamIndex === targetTeamIndex && swapSource.playerName === targetPlayer) {
+      setSwapSource(null);
+      return;
+    }
+    const newTeams = teams.map((t) => [...t]);
+    const srcIdx = newTeams[swapSource.teamIndex].indexOf(swapSource.playerName);
+    const tgtIdx = newTeams[targetTeamIndex].indexOf(targetPlayer);
+    newTeams[swapSource.teamIndex][srcIdx] = targetPlayer;
+    newTeams[targetTeamIndex][tgtIdx] = swapSource.playerName;
+    setTeams(newTeams);
+    dispatch({ type: 'SET_CURRENT_GAME_TEAMS', payload: newTeams });
+    addToast(`${swapSource.playerName} ↔ ${targetPlayer}`, 'success');
+    setSwapSource(null);
+  }
+
   const drawComplete = started && remainingPlayers.length === 0 && teams.some((t) => t.length > 0);
 
   return (
@@ -208,7 +228,24 @@ export default function TeamDraw() {
                 <div className="team-members">
                   {team.map((member) => (
                     <div key={member} className="member-row">
-                      <span className="member-badge">{member}</span>
+                      {drawComplete ? (
+                        <button
+                          className={`member-badge member-swappable ${swapSource?.playerName === member ? 'swap-selected' : ''} ${swapSource && swapSource.playerName !== member ? 'swap-target' : ''}`}
+                          onClick={() => {
+                            if (!swapSource) {
+                              setSwapSource({ teamIndex: i, playerName: member });
+                            } else {
+                              handleSwap(i, member);
+                            }
+                          }}
+                          title={swapSource ? `Échanger avec ${swapSource.playerName}` : 'Cliquer pour échanger'}
+                        >
+                          {member}
+                          {swapSource?.playerName === member && ' ↔'}
+                        </button>
+                      ) : (
+                        <span className="member-badge">{member}</span>
+                      )}
                     </div>
                   ))}
                   {team.length < teamSize && remainingPlayers.length > 0 && (
@@ -240,6 +277,7 @@ export default function TeamDraw() {
             <div className="draw-scores-section">
               <h2>🎉 Tirage terminé !</h2>
               <p className="scores-instruction">Les équipes sont formées. Direction les scores !</p>
+              <p className="swap-hint">Clique sur 2 joueurs pour les échanger d'équipe.</p>
 
               <div className="draw-complete-actions">
                 <Link to="/scores" className="btn btn-next">

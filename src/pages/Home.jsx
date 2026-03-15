@@ -51,8 +51,23 @@ export default function Home() {
     e.target.value = '';
   }
 
+  function validateImportData(data) {
+    if (!data || typeof data !== 'object') return false;
+    if (!Array.isArray(data.players)) return false;
+    if (!Array.isArray(data.gages)) return false;
+    if (!Array.isArray(data.history)) return false;
+    return true;
+  }
+
   function confirmImport() {
     if (pendingImportData) {
+      if (!validateImportData(pendingImportData)) {
+        setImportMessage('Erreur : fichier incompatible (players, gages ou history manquants)');
+        setTimeout(() => setImportMessage(null), 4000);
+        setShowImportConfirm(false);
+        setPendingImportData(null);
+        return;
+      }
       dispatch({ type: 'IMPORT_DATA', payload: pendingImportData });
       setImportMessage('Données importées avec succès !');
       setTimeout(() => setImportMessage(null), 3000);

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useGame } from '../context/GameContext';
+import { useToast } from '../context/ToastContext';
 import { Link } from 'react-router-dom';
 import Wheel from '../components/Wheel';
 import { playFiestaSound } from '../hooks/useSounds';
@@ -7,9 +8,13 @@ import { SPECIAL_RIEN, SPECIAL_X2 } from '../utils/constants';
 import { getTeamLabel } from '../utils/gameHelpers';
 import './Malchance.css';
 
+const MAX_UNDO_STACK = 50;
+
 export default function Malchance() {
   const { state, dispatch } = useGame();
+  const addToast = useToast();
   const [newGage, setNewGage] = useState('');
+  const [gageToDelete, setGageToDelete] = useState(null);
   const [newCategory, setNewCategory] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [currentLoserIndex, setCurrentLoserIndex] = useState(0);
@@ -115,7 +120,7 @@ export default function Malchance() {
       // Fiesta! No gage assigned
       setTimeout(() => playFiestaSound(), 100);
       const newAssigned = [...assignedGages, { player, gage: '🎉 Rien !' }];
-      setUndoStack([...undoStack, { ...undoEntry }]);
+      setUndoStack([...undoStack.slice(-MAX_UNDO_STACK + 1), { ...undoEntry }]);
       setAssignedGages(newAssigned);
       moveToNextPlayer(newAssigned);
       return;
@@ -123,7 +128,7 @@ export default function Malchance() {
 
     if (gageText === SPECIAL_X2) {
       // x2: 2 tirages obligatoires avec uniquement des vrais gages
-      setUndoStack([...undoStack, { ...undoEntry }]);
+      setUndoStack([...undoStack.slice(-MAX_UNDO_STACK + 1), { ...undoEntry }]);
       setExtraSpins(2);
       setWheelKey((k) => k + 1);
       return;
@@ -135,7 +140,7 @@ export default function Malchance() {
 
     // Consume this gage from the player's personal list
     dispatch({ type: 'CONSUME_PLAYER_GAGE', payload: { player, gageText } });
-    setUndoStack([...undoStack, { ...undoEntry, consumedGage: { player, gageText } }]);
+    setUndoStack([...undoStack.slice(-MAX_UNDO_STACK + 1), { ...undoEntry, consumedGage: { player, gageText } }]);
 
     if (extraSpins > 0) {
       const remaining = extraSpins - 1;
@@ -282,7 +287,14 @@ export default function Malchance() {
               <div key={gage.text} className="gage-item">
                 <span className="gage-category-tag">{gage.category}</span>
                 <span className="gage-text">{gage.text}</span>
-                <button className="btn-remove" onClick={() => dispatch({ type: 'REMOVE_GAGE', payload: gage.text })}>✕</button>
+                {gageToDelete === gage.text ? (
+                  <span className="gage-confirm-delete">
+                    <button className="btn-confirm-del" onClick={() => { dispatch({ type: 'REMOVE_GAGE', payload: gage.text }); setGageToDelete(null); addToast('Gage supprimé', 'info'); }}>Suppr</button>
+                    <button className="btn-cancel-del" onClick={() => setGageToDelete(null)}>Non</button>
+                  </span>
+                ) : (
+                  <button className="btn-remove" onClick={() => setGageToDelete(gage.text)}>✕</button>
+                )}
               </div>
             ))}
           </div>
