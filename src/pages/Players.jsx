@@ -8,18 +8,24 @@ export default function Players() {
   const [newPlayer, setNewPlayer] = useState('');
   const [newRegular, setNewRegular] = useState('');
   const [showAddRegular, setShowAddRegular] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState('');
 
   function handleAdd(e) {
     e.preventDefault();
     const name = newPlayer.trim();
-    if (name && !state.players.includes(name)) {
-      dispatch({ type: 'ADD_PLAYER', payload: name });
-      // Also add as regular player if not already
-      if (!state.regularPlayers.some((p) => p.toLowerCase() === name.toLowerCase())) {
-        dispatch({ type: 'ADD_REGULAR_PLAYER', payload: name });
-      }
-      setNewPlayer('');
+    if (!name) return;
+    // Case-insensitive duplicate check (matches reducer logic)
+    if (state.players.some((p) => p.toLowerCase() === name.toLowerCase())) {
+      setDuplicateWarning(`"${name}" est déjà dans la partie !`);
+      setTimeout(() => setDuplicateWarning(''), 3000);
+      return;
     }
+    dispatch({ type: 'ADD_PLAYER', payload: name });
+    // Also add as regular player if not already
+    if (!state.regularPlayers.some((p) => p.toLowerCase() === name.toLowerCase())) {
+      dispatch({ type: 'ADD_REGULAR_PLAYER', payload: name });
+    }
+    setNewPlayer('');
   }
 
   function handleAddRegular(e) {
@@ -107,6 +113,9 @@ export default function Players() {
             + Ajouter
           </button>
         </form>
+        {duplicateWarning && (
+          <p className="duplicate-warning">{duplicateWarning}</p>
+        )}
       </div>
 
       <div className="players-count">
