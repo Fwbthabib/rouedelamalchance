@@ -21,6 +21,18 @@ function loadState() {
       if (!parsed.playerGages) {
         parsed.playerGages = {};
       }
+      // Migration: ajouter maxUses aux gages globaux si absent
+      if (parsed.gages) {
+        parsed.gages = parsed.gages.map((g) => g.maxUses !== undefined ? g : { ...g, maxUses: 1 });
+      }
+      // Migration: ajouter maxUses/uses aux playerGages si absent
+      if (parsed.playerGages) {
+        for (const player of Object.keys(parsed.playerGages)) {
+          parsed.playerGages[player] = parsed.playerGages[player].map((g) =>
+            g.maxUses !== undefined ? g : { ...g, maxUses: 1, uses: g.uses || 0 }
+          );
+        }
+      }
       return parsed;
     }
   } catch (e) {
@@ -33,14 +45,14 @@ const defaultState = {
   players: [],
   regularPlayers: [],
   gages: [
-    { text: 'Regarder un film catastrophique (note < 3/10)', category: 'Films' },
-    { text: 'Regarder un film de Noël en plein été', category: 'Films' },
-    { text: 'Regarder un spectacle de magie gênant', category: 'Spectacles' },
-    { text: 'Regarder une comédie musicale en entier', category: 'Spectacles' },
-    { text: 'Préparer un exposé de 10 min sur un sujet imposé', category: 'Exposés' },
-    { text: 'Écouter un album entier de musique bizarre', category: 'Divers' },
-    { text: 'Regarder 2h de télé-réalité', category: 'Divers' },
-    { text: 'Regarder un documentaire sur les escargots', category: 'Films' },
+    { text: 'Regarder un film catastrophique (note < 3/10)', category: 'Films', maxUses: 1 },
+    { text: 'Regarder un film de Noël en plein été', category: 'Films', maxUses: 1 },
+    { text: 'Regarder un spectacle de magie gênant', category: 'Spectacles', maxUses: 1 },
+    { text: 'Regarder une comédie musicale en entier', category: 'Spectacles', maxUses: 1 },
+    { text: 'Préparer un exposé de 10 min sur un sujet imposé', category: 'Exposés', maxUses: 1 },
+    { text: 'Écouter un album entier de musique bizarre', category: 'Divers', maxUses: 1 },
+    { text: 'Regarder 2h de télé-réalité', category: 'Divers', maxUses: 1 },
+    { text: 'Regarder un documentaire sur les escargots', category: 'Films', maxUses: 1 },
   ],
   gageCategories: ['Films', 'Spectacles', 'Exposés', 'Divers'],
   playerGages: {},
@@ -75,7 +87,7 @@ function gameReducer(state, action) {
       const newPlayerGages = { ...state.playerGages };
       // Initialize with all global gages if new player
       if (!newPlayerGages[name]) {
-        newPlayerGages[name] = [...state.gages];
+        newPlayerGages[name] = state.gages.map((g) => ({ ...g, uses: 0 }));
       }
       return {
         ...state,
@@ -94,13 +106,13 @@ function gameReducer(state, action) {
       };
     }
     case 'ADD_PLAYER_GAGE': {
-      // payload: { player, gage: { text, category } }
+      // payload: { player, gage: { text, category, maxUses } }
       const { player, gage } = action.payload;
       const currentGages = state.playerGages[player] || [];
       if (currentGages.some((g) => g.text === gage.text)) return state;
       return {
         ...state,
-        playerGages: { ...state.playerGages, [player]: [...currentGages, gage] },
+        playerGages: { ...state.playerGages, [player]: [...currentGages, { ...gage, maxUses: gage.maxUses ?? 1, uses: 0 }] },
       };
     }
     case 'REMOVE_PLAYER_GAGE': {
@@ -113,17 +125,38 @@ function gameReducer(state, action) {
       };
     }
     case 'CONSUME_PLAYER_GAGE': {
-      // payload: { player, gageText } — remove gage after spinning
+      // payload: { player, gageText } — increment uses, remove only when maxUses reached
       const { player, gageText } = action.payload;
       const curr = state.playerGages[player] || [];
+      const updatedGages = curr
+        .map((g) => g.text === gageText ? { ...g, uses: (g.uses || 0) + 1 } : g)
+        .filter((g) => g.maxUses === 0 || g.uses < g.maxUses); // maxUses 0 = infinite
       return {
         ...state,
-        playerGages: { ...state.playerGages, [player]: curr.filter((g) => g.text !== gageText) },
+        playerGages: { ...state.playerGages, [player]: updatedGages },
+      };
+    }
+    case 'UNCONSUME_PLAYER_GAGE': {
+      // payload: { player, gageText, gage } — undo a consume: decrement uses or re-add
+      const { player, gageText, gage } = action.payload;
+      const currGages = state.playerGages[player] || [];
+      const existing = currGages.find((g) => g.text === gageText);
+      let updatedGages;
+      if (existing) {
+        // Gage still in list (infinite or multi-use), decrement uses
+        updatedGages = currGages.map((g) => g.text === gageText ? { ...g, uses: Math.max(0, (g.uses || 0) - 1) } : g);
+      } else {
+        // Gage was removed (maxUses reached), re-add with uses decremented
+        updatedGages = [...currGages, { ...gage, uses: Math.max(0, (gage.maxUses || 1) - 1) }];
+      }
+      return {
+        ...state,
+        playerGages: { ...state.playerGages, [player]: updatedGages },
       };
     }
     case 'ADD_GAGE':
       if (state.gages.some((g) => g.text === action.payload.text)) return state;
-      return { ...state, gages: [...state.gages, action.payload] };
+      return { ...state, gages: [...state.gages, { ...action.payload, maxUses: action.payload.maxUses ?? 1 }] };
     case 'REMOVE_GAGE':
       return { ...state, gages: state.gages.filter((g) => g.text !== action.payload) };
     case 'ADD_GAGE_CATEGORY':

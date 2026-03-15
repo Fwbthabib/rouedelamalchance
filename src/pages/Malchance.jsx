@@ -14,6 +14,7 @@ export default function Malchance() {
   const { state, dispatch } = useGame();
   const addToast = useToast();
   const [newGage, setNewGage] = useState('');
+  const [newGageMaxUses, setNewGageMaxUses] = useState(1);
   const [gageToDelete, setGageToDelete] = useState(null);
   const [newCategory, setNewCategory] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -53,8 +54,9 @@ export default function Malchance() {
     const text = newGage.trim();
     const category = selectedCategory || 'Divers';
     if (text) {
-      dispatch({ type: 'ADD_GAGE', payload: { text, category } });
+      dispatch({ type: 'ADD_GAGE', payload: { text, category, maxUses: newGageMaxUses } });
       setNewGage('');
+      setNewGageMaxUses(1);
     }
   }
 
@@ -163,8 +165,8 @@ export default function Malchance() {
     // Restore consumed gage if any
     if (last.consumedGage) {
       const { player, gageText } = last.consumedGage;
-      const gage = state.gages.find((g) => g.text === gageText) || { text: gageText, category: 'Divers' };
-      dispatch({ type: 'ADD_PLAYER_GAGE', payload: { player, gage } });
+      const gage = state.gages.find((g) => g.text === gageText) || { text: gageText, category: 'Divers', maxUses: 1 };
+      dispatch({ type: 'UNCONSUME_PLAYER_GAGE', payload: { player, gageText, gage } });
     }
 
     setAssignedGages(last.assignedGages);
@@ -243,6 +245,18 @@ export default function Malchance() {
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
+            <select
+              className="input gage-maxuses-select"
+              value={newGageMaxUses}
+              onChange={(e) => setNewGageMaxUses(parseInt(e.target.value, 10))}
+            >
+              <option value={1}>1 fois</option>
+              <option value={2}>2 fois</option>
+              <option value={3}>3 fois</option>
+              <option value={5}>5 fois</option>
+              <option value={10}>10 fois</option>
+              <option value={0}>Infini</option>
+            </select>
             <button type="submit" className="btn btn-add" disabled={!newGage.trim()}>
               +
             </button>
@@ -287,6 +301,7 @@ export default function Malchance() {
               <div key={gage.text} className="gage-item">
                 <span className="gage-category-tag">{gage.category}</span>
                 <span className="gage-text">{gage.text}</span>
+                <span className="gage-uses-tag">{gage.maxUses === 0 ? '∞' : `×${gage.maxUses}`}</span>
                 {gageToDelete === gage.text ? (
                   <span className="gage-confirm-delete">
                     <button className="btn-confirm-del" onClick={() => { dispatch({ type: 'REMOVE_GAGE', payload: gage.text }); setGageToDelete(null); addToast('Gage supprimé', 'info'); }}>Suppr</button>
@@ -358,13 +373,17 @@ export default function Malchance() {
           </div>
 
           <div className="gages-list">
-            {managedFilteredGages.map((gage) => (
-              <div key={gage.text} className="gage-item">
-                <span className="gage-category-tag">{gage.category}</span>
-                <span className="gage-text">{gage.text}</span>
-                <button className="btn-remove" onClick={() => dispatch({ type: 'REMOVE_PLAYER_GAGE', payload: { player: managingPlayerGages, gageText: gage.text } })}>✕</button>
-              </div>
-            ))}
+            {managedFilteredGages.map((gage) => {
+              const remaining = gage.maxUses === 0 ? '∞' : `${gage.maxUses - (gage.uses || 0)}/${gage.maxUses}`;
+              return (
+                <div key={gage.text} className="gage-item">
+                  <span className="gage-category-tag">{gage.category}</span>
+                  <span className="gage-text">{gage.text}</span>
+                  <span className="gage-uses-tag">{remaining}</span>
+                  <button className="btn-remove" onClick={() => dispatch({ type: 'REMOVE_PLAYER_GAGE', payload: { player: managingPlayerGages, gageText: gage.text } })}>✕</button>
+                </div>
+              );
+            })}
             {managedFilteredGages.length === 0 && (
               <p className="empty-gages">Aucun gage. Ajoute-en ou clique "Ajouter tous les gages globaux".</p>
             )}
